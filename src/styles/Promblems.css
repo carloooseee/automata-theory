@@ -1,0 +1,53 @@
+/* .problems-container {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+} */
+.problem-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+.radio-label {
+  cursor: pointer;
+  word-break: break-all;
+  font-family: monospace;
+}
+.inputs-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.input-row input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 250px;
+}
+.result {
+  font-weight: bold;
+}
+.valid { color: #155724; }
+.invalid { color: #d32f2f; }
+.exec-btn {
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+.exec-btn:hover {
+  background-color: #0056b3;
+}

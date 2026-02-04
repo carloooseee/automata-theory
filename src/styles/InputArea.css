@@ -1,0 +1,29 @@
+/* .input-area-container {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #fff;
+    margin-top: 1rem;
+} */
+.inputs-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.input-row input {
+  padding: 0.5rem;
+  border: 1px solid #000000;
+  border-radius: 4px;
+  width: 250px;
+}
+.result {
+  font-weight: bold;
+}
+.valid { color: #155724; }
+.invalid { color: #d32f2f; }
