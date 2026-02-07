@@ -3,8 +3,10 @@ import { ref, computed } from 'vue'
 import Problems from './components/Promblems.vue'
 import InputArea from './components/InputArea.vue'
 import NavBar from './components/NavBar.vue'
+import SelectSimulation from './components/SelectSimulation.vue'
 
 const currentView = ref('regex')
+const simulationInputs = ref([])
 
 const automata = ref('automata-theory project')
 
@@ -29,6 +31,10 @@ const currentRegex = computed(() => {
 const setView = (view) => {
   currentView.value = view
 }
+
+const updateSimulationInputs = (newInputs) => {
+  simulationInputs.value = newInputs
+}
 </script>
 
 <template>
@@ -48,11 +54,11 @@ const setView = (view) => {
         </div>
         <div class="section input-section">
           <h2>Test your Strings</h2>
-          <InputArea :regexStr="currentRegex" />
+          <InputArea :regexStr="currentRegex" @inputs-updated="updateSimulationInputs" />
         </div>
       </div>
-      <div class="section">DFA Simulation</div>
-      <div class="section">WOW Simulation</div>
+      <div class="section"><SelectSimulation :inputs="simulationInputs" /></div>
+      <div class="section">D3.js Simulation</div>
     </div>
   </div>
 

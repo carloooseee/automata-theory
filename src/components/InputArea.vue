@@ -1,39 +1,35 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
     regexStr: { type: String, required: true }
 })
 
+const emit = defineEmits(['inputs-updated'])
+
 const userInputs = ref(['', '', '', '', ''])
-const inputResults = ref([null, null, null, null, null])
 
-const execute = () => {
+watch(userInputs, (newVal) => {
+    emit('inputs-updated', [...newVal])
+}, { deep: true })
+
+const inputResults = computed(() => {
     if (!props.regexStr) {
-        inputResults.value = userInputs.value.map(() => 'No Regex')
-        return
+        return userInputs.value.map(() => 'No Regex')
     }
 
-    const jsRegexStr = '^' + props.regexStr.split('+').join('|') + '$'
-    
-    let regex
     try {
-        regex = new RegExp(jsRegexStr)
+        const jsRegexStr = '^' + props.regexStr.split('+').join('|') + '$'
+        const regex = new RegExp(jsRegexStr)
+        
+        return userInputs.value.map(val => {
+            if (!val) return null
+            return regex.test(val) ? 'Valid' : 'Invalid'
+        })
     } catch (e) {
-        console.error("Invalid Regex generated:", jsRegexStr)
-        inputResults.value = userInputs.value.map(() => 'Error')
-        return
+        console.error("Invalid Regex generated:", e)
+        return userInputs.value.map(() => 'Error')
     }
-
-    inputResults.value = userInputs.value.map(val => {
-         // Love u! ;)
-        if (!val) return 'Invalid' 
-        return regex.test(val) ? 'Valid' : 'Invalid'
-    })
-}
-
-watch(() => props.regexStr, () => {
-    inputResults.value = [null, null, null, null, null]
 })
 </script>
 
@@ -54,7 +50,7 @@ watch(() => props.regexStr, () => {
       </div>
     </div>
 
-    <button @click="execute" class="exec-btn">Execute</button>
+    <!-- <button @click="execute" class="exec-btn">Execute</button> -->
   </div>
 </template>
 
