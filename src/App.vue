@@ -35,7 +35,8 @@ const setView = (view) => {
   <NavBar @change-view="setView" />
   
   <div v-if="currentView === 'regex'">
-    <h1>{{ automata }}</h1>
+    <h1 class="main-title">{{ automata }}</h1>
+    <p class="main-title">Interactive Regular Expressions Simulator</p>
     <div class="sections-container">
       <div class="problem-input-container">
         <div class="section problems-section">
@@ -57,12 +58,12 @@ const setView = (view) => {
 
   <div v-else-if="currentView === 'cfgpda'">
     <h1>CFGPDA</h1>
-    <p>Context Free Grammar & Pushdown Automata content goes here.</p>
+    <p>Di pa ako sure pano dito</p>
   </div>
 
   <div v-else-if="currentView === 'manual'">
     <h1>User Manual</h1>
-    <p>User manual content goes here.</p>
+    <p>kahit link nlang pala dito</p>
   </div>
 </template>
 

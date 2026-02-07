@@ -5,7 +5,7 @@ defineEmits(['change-view'])
 <template>
   <nav class="navbar">
     <button @click="$emit('change-view', 'regex')">RegEx</button>
-    <button @click="$emit('change-view', 'cfgpda')">CFGPDA</button>
+    <button @click="$emit('change-view', 'cfgpda')">CFG & PDA</button>
     <button @click="$emit('change-view', 'manual')">User Manual</button>
   </nav>
 </template>
@@ -15,6 +15,7 @@ defineEmits(['change-view'])
   display: flex;
   justify-content: center;
   gap: 1rem;
+  margin: none;
   margin-bottom: 1rem;
   padding: 1rem;
   background-color: #f0f0f0;
