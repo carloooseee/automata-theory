@@ -57,19 +57,70 @@ const generateDFA = (problemId) => {
     ];
     return { nodes: states, links: transitions };
   } else {
-      // Problem 2
+      // Problem 2: (1+0)*(11+00+101+010)...
       const states = [
         { id: 'start', label: 'Start', type: 'start' },
-        { id: 's1', label: '1', type: 'state' },
-        { id: 's2', label: '0', type: 'state' },
+        
+        // Stage 1: (1+0)* loops and transition
+        { id: 's1_a', label: '0,1', type: 'state' },
+        { id: 's1_b', label: '11', type: 'state' },
+        { id: 's1_c', label: '00', type: 'state' },
+
+        // Stage 2: Middle Loop Cluster (Complex)
+        { id: 'm1', label: 'q_m1', type: 'state' },
+        { id: 'm2', label: 'q_m2', type: 'state' },
+        { id: 'm3', label: 'q_m3', type: 'state' },
+        { id: 'm4', label: 'q_m4', type: 'state' },
+
+        // Stage 3: Mandatory Bridge (11+00)
+        { id: 'br1', label: '1', type: 'state' },
+        { id: 'br2', label: '0', type: 'state' },
+        { id: 'br_end', label: 'pair', type: 'state' },
+
+        // Stage 4: Final Complex Loop
+        { id: 'f1', label: 'q_f1', type: 'state' },
+        { id: 'f2', label: 'q_f2', type: 'state' },
+
+        // End
+        { id: 'penult', label: 'last', type: 'state' },
         { id: 'accept', label: 'Accept', type: 'accept' }
       ];
+
       const transitions = [
-        { source: 'start', target: 's1', label: '1' },
-        { source: 'start', target: 's2', label: '0' },
-        { source: 's1', target: 'accept', label: '0' },
-        { source: 's2', target: 'accept', label: '1' },
-        { source: 'accept', target: 'accept', label: '0,1' }
+        // Start Loops (1+0)*
+        { source: 'start', target: 'start', label: '0,1' },
+        { source: 'start', target: 's1_a', label: '1' },
+        { source: 's1_a', target: 's1_b', label: '1' }, // 11
+        { source: 'start', target: 's1_c', label: '0' }, // 0...
+        { source: 's1_c', target: 'm1', label: '0' }, // 00 -> Middle
+
+        // Transition to Middle
+        { source: 's1_b', target: 'm1', label: 'ε' },
+
+        // Middle Cluster (Dense)
+        { source: 'm1', target: 'm2', label: '1' },
+        { source: 'm2', target: 'm3', label: '0' },
+        { source: 'm3', target: 'm4', label: '1' },
+        { source: 'm4', target: 'm1', label: '0' },
+        { source: 'm2', target: 'm4', label: '0,1' }, // Cross
+        { source: 'm3', target: 'm3', label: '1' }, // Self
+
+        // Bridge (11+00)
+        { source: 'm3', target: 'br1', label: '1' },
+        { source: 'br1', target: 'br_end', label: '1' }, // 11
+        { source: 'm2', target: 'br2', label: '0' },
+        { source: 'br2', target: 'br_end', label: '0' }, // 00
+
+        // Final Loop Stage
+        { source: 'br_end', target: 'f1', label: 'ε' },
+        { source: 'f1', target: 'f2', label: '1' },
+        { source: 'f2', target: 'f1', label: '0' },
+        { source: 'f2', target: 'f2', label: '11' },
+
+        // To Accept
+        { source: 'f1', target: 'penult', label: '1+0' },
+        { source: 'penult', target: 'accept', label: 'ε' },
+        { source: 'accept', target: 'accept', label: '1+0+11' }
       ];
       return { nodes: states, links: transitions };
   }
