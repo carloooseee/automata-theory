@@ -27,16 +27,18 @@ const currentRegex = computed(() => {
 <template>
   <h1>{{ automata }}</h1>
   <div class="sections-container">
-    <div class="section">
-        <Problems 
-            :problems="problems" 
-            v-model="selectedProblemIndex" 
-        />
+    <div class="problem-input-container">
+      <div class="section problems-section">
+          <Problems 
+              :problems="problems" 
+              v-model="selectedProblemIndex" 
+          />
+      </div>
+      <div class="section input-section">
+        <InputArea :regexStr="currentRegex" />
+      </div>
     </div>
     <div class="section">DFA Simulation</div>
-    <div class="section">
-      <InputArea :regexStr="currentRegex" />
-    </div>
   </div>
 </template>
 
