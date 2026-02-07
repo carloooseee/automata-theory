@@ -4,6 +4,7 @@ import Problems from './components/Promblems.vue'
 import InputArea from './components/InputArea.vue'
 import NavBar from './components/NavBar.vue'
 import SelectSimulation from './components/SelectSimulation.vue'
+import Diagram from './components/DFAVisualization.vue'
 
 const currentView = ref('regex')
 const simulationInputs = ref([])
@@ -58,13 +59,14 @@ const updateSimulationInputs = (newInputs) => {
         </div>
       </div>
       <div class="section"><SelectSimulation :inputs="simulationInputs" /></div>
-      <div class="section">D3.js Simulation</div>
+      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" /></div>
     </div>
   </div>
 
   <div v-else-if="currentView === 'cfgpda'">
     <h1>CFGPDA</h1>
     <p>Di pa ako sure pano dito</p>
+    <div class="section"><SelectSimulation :inputs="simulationInputs" /></div>
   </div>
 
   <div v-else-if="currentView === 'manual'">
