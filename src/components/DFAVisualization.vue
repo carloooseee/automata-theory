@@ -226,9 +226,13 @@ watch(() => props.problemId, (newId) => {
     renderDFA(customData);
 });
 
-onMounted(() => {
+const resetLayout = () => {
     const customData = generateDFA(props.problemId);
     renderDFA(customData);
+};
+
+onMounted(() => {
+    resetLayout();
 });
 </script>
 
@@ -236,6 +240,7 @@ onMounted(() => {
   <div class="dfa-container">
     <h3>DFA Visualization (Problem {{ problemId }})</h3>
     <svg ref="svgRef"></svg>
+    <button @click="resetLayout" class="reset-btn">Reset Layout</button>
   </div>
 </template>
 
@@ -251,5 +256,21 @@ onMounted(() => {
 
 h3 {
     margin: 1rem 0;
+}
+
+.reset-btn {
+    margin: 10px;
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+.reset-btn:hover {
+    background-color: #e2e6ea;
 }
 </style>
