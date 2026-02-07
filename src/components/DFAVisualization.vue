@@ -152,10 +152,17 @@ const renderDFA = (data) => {
         .attr("fill", "#000"); // Black arrow
 
     // Simulation setup
+    // Initial positioning to encourage horizontal layout
+    data.nodes.forEach((d, i) => {
+        d.x = i * 100; // Spread out horizontally initially
+        d.y = 0;
+    });
+
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
         .force("charge", d3.forceManyBody().strength(-300))
         .force("collide", d3.forceCollide(30))
+        .force("y", d3.forceY(0).strength(0.1)) // Keep nodes somewhat aligned vertically
         .stop(); // Stop automatic simulation to manually tick first
 
     // Create elements
@@ -297,12 +304,13 @@ onMounted(() => {
 
 <style scoped>
 .dfa-container {
-    width: 80%;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
     height: max-content;
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-x: auto; /* Allow horizontal scrolling */
 }
 
 h3 {
