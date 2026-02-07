@@ -14,7 +14,6 @@ const execute = () => {
         return
     }
 
-    // Convert theoretical syntax to JS Regex
     const jsRegexStr = '^' + props.regexStr.split('+').join('|') + '$'
     
     let regex
@@ -27,13 +26,12 @@ const execute = () => {
     }
 
     inputResults.value = userInputs.value.map(val => {
-         // If "invalid or valid" and "Input format like 'babba'"
+         // Love u! ;)
         if (!val) return 'Invalid' 
         return regex.test(val) ? 'Valid' : 'Invalid'
     })
 }
 
-// Clear results when regex changes
 watch(() => props.regexStr, () => {
     inputResults.value = [null, null, null, null, null]
 })
@@ -42,7 +40,6 @@ watch(() => props.regexStr, () => {
 <template>
   <div class="input-area-container">
     <div class="inputs-area">
-      <h4>Regex Test Inputs</h4>
       <div v-for="(inp, idx) in userInputs" :key="idx" class="input-row">
         <input 
           v-model="userInputs[idx]" 

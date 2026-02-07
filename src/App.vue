@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue'
 import Problems from './components/Promblems.vue'
 import InputArea from './components/InputArea.vue'
+import NavBar from './components/NavBar.vue'
+
+const currentView = ref('regex')
 
 const automata = ref('automata-theory project')
 
@@ -22,23 +25,44 @@ const selectedProblemIndex = ref(0)
 const currentRegex = computed(() => {
     return problems.value[selectedProblemIndex.value]?.regexStr || ''
 })
+
+const setView = (view) => {
+  currentView.value = view
+}
 </script>
 
 <template>
-  <h1>{{ automata }}</h1>
-  <div class="sections-container">
-    <div class="problem-input-container">
-      <div class="section problems-section">
-          <Problems 
-              :problems="problems" 
-              v-model="selectedProblemIndex" 
-          />
+  <NavBar @change-view="setView" />
+  
+  <div v-if="currentView === 'regex'">
+    <h1>{{ automata }}</h1>
+    <div class="sections-container">
+      <div class="problem-input-container">
+        <div class="section problems-section">
+          <h2>Regular Expressions</h2>
+            <Problems 
+                :problems="problems" 
+                v-model="selectedProblemIndex" 
+            />
+        </div>
+        <div class="section input-section">
+          <h2>Test your Strings</h2>
+          <InputArea :regexStr="currentRegex" />
+        </div>
       </div>
-      <div class="section input-section">
-        <InputArea :regexStr="currentRegex" />
-      </div>
+      <div class="section">DFA Simulation</div>
+      <div class="section">WOW Simulation</div>
     </div>
-    <div class="section">DFA Simulation</div>
+  </div>
+
+  <div v-else-if="currentView === 'cfgpda'">
+    <h1>CFGPDA</h1>
+    <p>Context Free Grammar & Pushdown Automata content goes here.</p>
+  </div>
+
+  <div v-else-if="currentView === 'manual'">
+    <h1>User Manual</h1>
+    <p>User manual content goes here.</p>
   </div>
 </template>
 

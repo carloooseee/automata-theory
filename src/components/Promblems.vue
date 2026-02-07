@@ -16,8 +16,6 @@ const selectedProblem = computed({
 
 <template>
   <div class="problems-container">
-    <h3>Regex Problems</h3>
-    
     <div class="problem-selector">
       <label v-for="(prob, index) in problems" :key="prob.id" class="radio-label">
         <input 
