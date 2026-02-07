@@ -17,3 +17,9 @@
 .input-section {
   flex: 1;
 }
+
+@media (max-width: 768px) {
+  .problem-input-container {
+    flex-direction: column;
+  }
+}
