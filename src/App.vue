@@ -5,6 +5,7 @@ import InputArea from './components/InputArea.vue'
 import NavBar from './components/NavBar.vue'
 import SelectSimulation from './components/SelectSimulation.vue'
 import Diagram from './components/DFAVisualization.vue'
+import PDAVisualization from './components/PDAVisualization.vue'
 
 const currentView = ref('regex')
 const simulationInputs = ref([])
@@ -64,14 +65,50 @@ const updateSimulationInputs = (newInputs) => {
   </div>
 
   <div v-else-if="currentView === 'cfgpda'">
-    <h1>CFGPDA</h1>
-    <p>Di pa ako sure pano dito</p>
-    <div class="section"><SelectSimulation :inputs="simulationInputs" /></div>
+    <h1 class="main-title">{{ automata }}</h1>
+    <p class="main-title">Interactive Pushdown Automata Simulator</p>
+    
+    <div class="simulation-controls">
+        <SelectSimulation :inputs="simulationInputs" />
+    </div>
+
+    <div class="split-container">
+        <div class="cfg-section">
+            <h2>CFG</h2>
+            <!-- CFG Visualization will go here -->
+        </div>
+        <div class="pda-section">
+            <PDAVisualization :problemId="problems[selectedProblemIndex].id" />
+        </div>
+    </div>
   </div>
 
   <div v-else-if="currentView === 'manual'">
     <h1>User Manual</h1>
     <p>kahit link nlang pala dito</p>
   </div>
+
 </template>
+
+<style scoped>
+.split-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.cfg-section, .pda-section {
+    flex: 1;
+    border: 1px solid #000000;
+    padding: 20px;
+}
+
+.simulation-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+</style>
 
