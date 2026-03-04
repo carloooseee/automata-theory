@@ -32,7 +32,8 @@ const DFA_CONFIGS = {
     links: [
       { source: 'q0', target: 'q1', label: 'a' },
       { source: 'q0', target: 'q2', label: 'b' },
-      { source: 'q1', target: 'q2', label: 'a, b' },
+      { source: 'q1', target: 'q2', label: 'a', curve: 1, sweep: 0},
+      { source: 'q1', target: 'q2', label: 'b', curve: 1, sweep: 1},
       { source: 'q2', target: 'q3', label: 'a' },
       { source: 'q2', target: 'q5', label: 'b' },
       { source: 'q3', target: 'q4', label: 'a' },
@@ -42,8 +43,8 @@ const DFA_CONFIGS = {
       { source: 'q5', target: 'q3', label: 'a' },
       { source: 'q5', target: 'q6', label: 'b' },
       { source: 'q6', target: 'q3', label: 'a' },
-      { source: 'q6', target: 'q7', label: 'b' },
-      { source: 'q7', target: 'q8', label: 'a, b' },
+      { source: 'q7', target: 'q8', label: 'a', curve: 1, sweep: 0},
+      { source: 'q7', target: 'q8', label: 'b', curve: 1, sweep: 1},
       { source: 'q8', target: 'q8', label: 'a, b' }
     ],
     transitions: {
@@ -65,7 +66,7 @@ const DFA_CONFIGS = {
       { id: 'p0', label: 'p0', type: 'start', fx: 0, fy: 0 },
       { id: 'p1', label: 'p1', type: 'state', fx: 150, fy: -100 },
       { id: 'p2', label: 'p2', type: 'state', fx: 150, fy: 100 },
-      { id: 'p3', label: 'p3', type: 'state', fx: 300, fy: -100 },
+      { id: 'p3', label: 'p3', type: 'state', fx: 300, fy: -150 },
       { id: 'p4', label: 'p4', type: 'state', fx: 300, fy: 100 },
       { id: 'p5', label: 'p5', type: 'state', fx: 450, fy: 0 },
       { id: 'p6', label: 'p6', type: 'state', fx: 600, fy: -80 },
@@ -80,15 +81,18 @@ const DFA_CONFIGS = {
       { source: 'p1', target: 'p3', label: '1' },
       { source: 'p2', target: 'p4', label: '0' },
       { source: 'p2', target: 'p5', label: '1' },
-      { source: 'p3', target: 'p5', label: '0, 1' },
-      { source: 'p4', target: 'p5', label: '0, 1' },
+      { source: 'p3', target: 'p5', label: '0', curve: 1, sweep: 0 },
+      { source: 'p3', target: 'p5', label: '1', curve: 1, sweep: 1},
+      { source: 'p4', target: 'p5', label: '0', curve: 1, sweep: 0 },
+      { source: 'p4', target: 'p5', label: '1', curve: 1, sweep: 1 },
       { source: 'p5', target: 'p6', label: '0' },
       { source: 'p5', target: 'p7', label: '1' },
       { source: 'p6', target: 'p8', label: '0' },
       { source: 'p6', target: 'p7', label: '1' },
       { source: 'p7', target: 'p6', label: '0' },
       { source: 'p7', target: 'p8', label: '1' },
-      { source: 'p8', target: 'p9', label: '0, 1' },
+      { source: 'p8', target: 'p9', label: '0', curve: 1, sweep: 0 },
+      { source: 'p8', target: 'p9', label: '1', curve: 1, sweep: 1 },
       { source: 'p9', target: 'p9', label: '0, 1' }
     ],
     transitions: {
@@ -182,9 +186,18 @@ const highlightElements = (fromId, toId) => {
     }
     
     if (fromId && toId) {
-        d3.select(svgRef.value).select(`#link-${fromId}-${toId}`)
-          .attr('stroke', color)
-          .attr('stroke-width', 3);
+        // Highlight all lines belonging to the correct char index (there might be multiple chars)
+        const char = currentStep.value?.char;
+        if (char) {
+            const specificLink = d3.select(svgRef.value).select(`#link-${fromId}-${toId}-${char}`);
+            if (!specificLink.empty()) {
+                specificLink.attr('stroke', color).attr('stroke-width', 3);
+            } else {
+                d3.select(svgRef.value).select(`#link-${fromId}-${toId}`).attr('stroke', color).attr('stroke-width', 3);
+            }
+        } else {
+            d3.select(svgRef.value).select(`path[id^="link-${fromId}-${toId}"]`).attr('stroke', color).attr('stroke-width', 3);
+        }
     }
 }
 
@@ -268,7 +281,7 @@ const renderDFA = () => {
         .data(data.links)
         .join("path")
         .attr("class", "edge")
-        .attr("id", d => `link-${d.source.id ?? d.source}-${d.target.id ?? d.target}`)
+        .attr("id", d => `link-${d.source.id ?? d.source}-${d.target.id ?? d.target}-${d.label}`)
         .attr("fill", "none")
         .attr("stroke", "black")
         .attr("stroke-width", 2)
@@ -276,8 +289,15 @@ const renderDFA = () => {
 
     const linkLabel = svg.append("g").selectAll("text")
         .data(data.links).join("text").text(d => d.label)
-        .attr("font-size", "14px").attr("fill", "#e63946")
-        .attr("font-weight", "bold").attr("text-anchor", "middle");
+        .attr("font-size", "14px")
+        .attr("fill", "#e63946")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "middle")
+        // Create the white background aura effect using stroke
+        .style("paint-order", "stroke")
+        .style("stroke", "#ffffff")
+        .style("stroke-width", "5px")
+        .style("stroke-linejoin", "round");
 
     const nodeGroup = svg.append("g")
     const node = nodeGroup.selectAll("circle")
@@ -297,16 +317,44 @@ const renderDFA = () => {
 
     simulation.tick(300);
 
-    link.attr("d", d => {
-        const dx = d.target.x - d.source.x;
-        const dy = d.target.y - d.source.y;
-        if (d.source === d.target) {
-            return `M${d.source.x - 10},${d.source.y - 18} A 20 20 0 1 1 ${d.source.x + 10},${d.source.y - 18}`;
-        }
-        let dr = Math.sqrt(dx * dx + dy * dy);
-        dr = dr * 1.5;
-        return `M${d.source.x},${d.source.y} A ${dr} ${dr} 0 0 1 ${d.target.x},${d.target.y}`;
-    });
+link.attr("d", d => {
+    const dx = d.target.x - d.source.x;
+    const dy = d.target.y - d.source.y;
+    
+    // 1. Handle Self-Loops (Already working, but kept for context)
+    if (d.source === d.target) {
+        const size = d.curve ? 20 * d.curve : 20;
+        const yOffset = d.curve ? 18 + (d.curve - 1)*20 : 18;
+        return `M${d.source.x - 10},${d.source.y - yOffset} A ${size} ${size} 0 1 1 ${d.source.x + 10},${d.source.y - yOffset}`;
+    }
+
+    // 2. Calculate Distance
+    let dr = Math.sqrt(dx * dx + dy * dy);
+    
+    // 3. Determine Sweep (Direction of the curve)
+    // If d.sweep is provided (0 or 1), use it. 
+    // Otherwise, use your ID-based direction logic.
+    let finalSweep;
+    if (d.sweep !== undefined) {
+        finalSweep = d.sweep;
+    } else {
+        const sourceNum = parseInt((d.source.id ?? d.source).replace(/\D/g, '')) || 0;
+        const targetNum = parseInt((d.target.id ?? d.target).replace(/\D/g, '')) || 0;
+        finalSweep = sourceNum < targetNum ? 1 : 0;
+    }
+
+    // 4. Determine Radius (Intensity of the curve)
+    // If d.curve is a huge number (like 50000), it makes the line straight.
+    // Otherwise, we apply the multiplier to the distance.
+    if (d.curve && d.curve > 1000) {
+        // High curve value = Straight line
+        return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`;
+    } else {
+        // Standard curved arc
+        dr = dr * (d.curve || 1.3);
+        return `M${d.source.x},${d.source.y} A ${dr} ${dr} 0 0 ${finalSweep} ${d.target.x},${d.target.y}`;
+    }
+});
 
     linkLabel
         .attr("x", d => {
@@ -315,7 +363,8 @@ const renderDFA = () => {
         })
         .attr("y", d => {
             if (d.source === d.target) return d.source.y - 45;
-            return link.nodes()[data.links.indexOf(d)].getPointAtLength(0.5 * link.nodes()[data.links.indexOf(d)].getTotalLength()).y - 10;
+            // Place exactly on the line vertically
+            return link.nodes()[data.links.indexOf(d)].getPointAtLength(0.5 * link.nodes()[data.links.indexOf(d)].getTotalLength()).y;
         });
 
     node.attr("cx", d => d.x).attr("cy", d => d.y);
