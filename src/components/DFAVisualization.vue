@@ -19,15 +19,15 @@ const DFA_CONFIGS = {
     start: 'q0',
     accept: ['q8'],
     nodes: [
-      { id: 'q0', label: 'q0', type: 'start' },
-      { id: 'q1', label: 'q1', type: 'state' },
-      { id: 'q2', label: 'q2', type: 'state' },
-      { id: 'q3', label: 'q3', type: 'state' },
-      { id: 'q4', label: 'q4', type: 'state' },
-      { id: 'q5', label: 'q5', type: 'state' },
-      { id: 'q6', label: 'q6', type: 'state' },
-      { id: 'q7', label: 'q7', type: 'state' },
-      { id: 'q8', label: 'q8', type: 'accept' }
+      { id: 'q0', label: 'q0', type: 'start', fx: 0, fy: 0 },
+      { id: 'q1', label: 'q1', type: 'state', fx: 150, fy: -80 },
+      { id: 'q2', label: 'q2', type: 'state', fx: 150, fy: 80 },
+      { id: 'q3', label: 'q3', type: 'state', fx: 300, fy: -80 },
+      { id: 'q4', label: 'q4', type: 'state', fx: 450, fy: -80 },
+      { id: 'q5', label: 'q5', type: 'state', fx: 300, fy: 80 },
+      { id: 'q6', label: 'q6', type: 'state', fx: 450, fy: 80 },
+      { id: 'q7', label: 'q7', type: 'state', fx: 600, fy: 0 },
+      { id: 'q8', label: 'q8', type: 'accept', fx: 750, fy: 0 }
     ],
     links: [
       { source: 'q0', target: 'q1', label: 'a' },
@@ -62,16 +62,16 @@ const DFA_CONFIGS = {
     start: 'p0',
     accept: ['p9'],
     nodes: [
-      { id: 'p0', label: 'p0', type: 'start' },
-      { id: 'p1', label: 'p1', type: 'state' },
-      { id: 'p2', label: 'p2', type: 'state' },
-      { id: 'p3', label: 'p3', type: 'state' },
-      { id: 'p4', label: 'p4', type: 'state' },
-      { id: 'p5', label: 'p5', type: 'state' },
-      { id: 'p6', label: 'p6', type: 'state' },
-      { id: 'p7', label: 'p7', type: 'state' },
-      { id: 'p8', label: 'p8', type: 'state' },
-      { id: 'p9', label: 'A', type: 'accept' }
+      { id: 'p0', label: 'p0', type: 'start', fx: 0, fy: 0 },
+      { id: 'p1', label: 'p1', type: 'state', fx: 150, fy: -100 },
+      { id: 'p2', label: 'p2', type: 'state', fx: 150, fy: 100 },
+      { id: 'p3', label: 'p3', type: 'state', fx: 300, fy: -100 },
+      { id: 'p4', label: 'p4', type: 'state', fx: 300, fy: 100 },
+      { id: 'p5', label: 'p5', type: 'state', fx: 450, fy: 0 },
+      { id: 'p6', label: 'p6', type: 'state', fx: 600, fy: -80 },
+      { id: 'p7', label: 'p7', type: 'state', fx: 600, fy: 80 },
+      { id: 'p8', label: 'p8', type: 'state', fx: 750, fy: 0 },
+      { id: 'p9', label: 'A', type: 'accept', fx: 900, fy: 0 }
     ],
     links: [
       { source: 'p0', target: 'p1', label: '0' },
@@ -261,16 +261,7 @@ const renderDFA = () => {
         .attr("fill", "#000");
 
     const simulation = d3.forceSimulation(data.nodes)
-        .force("link", d3.forceLink(data.links).id(d => d.id).distance(120))
-        .force("charge", d3.forceManyBody().strength(-800))
-        .force("collide", d3.forceCollide(40))
-        .force("y", d3.forceY(0).strength(0.2))
-        .force("x", d3.forceX(d => {
-            if (d.type === 'start') return -300;
-            if (d.type === 'accept') return 300;
-            return 0;
-        }).strength(0.5))
-        .force("center", d3.forceCenter(0, 0));
+        .force("link", d3.forceLink(data.links).id(d => d.id));
 
     const linkGroup = svg.append("g")
     const link = linkGroup.selectAll("path")
@@ -312,7 +303,8 @@ const renderDFA = () => {
         if (d.source === d.target) {
             return `M${d.source.x - 10},${d.source.y - 18} A 20 20 0 1 1 ${d.source.x + 10},${d.source.y - 18}`;
         }
-        const dr = Math.sqrt(dx * dx + dy * dy) * 2;
+        let dr = Math.sqrt(dx * dx + dy * dy);
+        dr = dr * 1.5;
         return `M${d.source.x},${d.source.y} A ${dr} ${dr} 0 0 1 ${d.target.x},${d.target.y}`;
     });
 
