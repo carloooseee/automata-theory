@@ -5,6 +5,8 @@ const props = defineProps({
     inputs: { type: Array, required: true }
 })
 
+const emit = defineEmits(['start-simulation'])
+
 const selectedInput = ref('')
 
 const validInputs = computed(() => {
@@ -12,7 +14,7 @@ const validInputs = computed(() => {
 })
 
 const startSimulation = () => {
-    console.log('Starting simulation with:', selectedInput.value)
+    emit('start-simulation', selectedInput.value)
 }
 </script>
 

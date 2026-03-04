@@ -37,6 +37,11 @@ const setView = (view) => {
 const updateSimulationInputs = (newInputs) => {
   simulationInputs.value = newInputs
 }
+
+const currentTestString = ref('')
+const runSimulation = (str) => {
+  currentTestString.value = str
+}
 </script>
 
 <template>
@@ -59,8 +64,8 @@ const updateSimulationInputs = (newInputs) => {
           <InputArea :regexStr="currentRegex" @inputs-updated="updateSimulationInputs" />
         </div>
       </div>
-      <div class="section"><SelectSimulation :inputs="simulationInputs" /></div>
-      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" /></div>
+      <div class="section"><SelectSimulation :inputs="simulationInputs" @start-simulation="runSimulation" /></div>
+      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" /></div>
     </div>
   </div>
 
