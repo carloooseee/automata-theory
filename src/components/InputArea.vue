@@ -5,7 +5,7 @@ const props = defineProps({
     regexStr: { type: String, required: true }
 })
 
-const emit = defineEmits(['inputs-updated'])
+const emit = defineEmits(['inputs-updated', 'simulate-string'])
 
 const userInputs = ref(['', '', '', '', ''])
 
@@ -47,10 +47,15 @@ const inputResults = computed(() => {
         >
           {{ inputResults[idx] }}
         </span>
+        <button
+          v-if="inputResults[idx] === 'Valid' || inputResults[idx] === 'Invalid'"
+          @click="$emit('simulate-string', userInputs[idx])"
+          class="simulate-btn"
+        >
+          Simulate
+        </button>
       </div>
     </div>
-
-    <!-- <button @click="execute" class="exec-btn">Execute</button> -->
   </div>
 </template>
 

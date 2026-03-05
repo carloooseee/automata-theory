@@ -61,10 +61,10 @@ const runSimulation = (str) => {
         </div>
         <div class="section input-section">
           <h2>Test your Strings</h2>
-          <InputArea :regexStr="currentRegex" @inputs-updated="updateSimulationInputs" />
+          <InputArea :regexStr="currentRegex" @inputs-updated="updateSimulationInputs" @simulate-string="runSimulation" /> <!--Simulation BUTTON-->
         </div>
       </div>
-      <div class="section"><SelectSimulation :inputs="simulationInputs" @start-simulation="runSimulation" /></div>
+      <!-- <div class="section"><SelectSimulation :inputs="simulationInputs" @start-simulation="runSimulation" /></div> WAG MUNA TO GALAWIN-->
       <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" /></div>
     </div>
   </div>
@@ -73,9 +73,9 @@ const runSimulation = (str) => {
     <h1 class="main-title">{{ automata }}</h1>
     <p class="main-title">Interactive Pushdown Automata Simulator</p>
     
-    <div class="simulation-controls">
-        <SelectSimulation :inputs="simulationInputs" />
-    </div>
+    <!-- <div class="simulation-controls">
+        <SelectSimulation :inputs="simulationInputs" /> Wag muna to galawin guys! finollow k muna ung intended design ni mam
+    </div> -->
 
     <div class="split-container">
         <div class="cfg-section">

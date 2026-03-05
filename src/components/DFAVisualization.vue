@@ -43,6 +43,7 @@ const DFA_CONFIGS = {
       { source: 'q5', target: 'q3', label: 'a' },
       { source: 'q5', target: 'q6', label: 'b' },
       { source: 'q6', target: 'q3', label: 'a' },
+      { source: 'q6', target: 'q7', label: 'b' },
       { source: 'q7', target: 'q8', label: 'a', curve: 1, sweep: 0},
       { source: 'q7', target: 'q8', label: 'b', curve: 1, sweep: 1},
       { source: 'q8', target: 'q8', label: 'a, b' }
