@@ -4,7 +4,8 @@ import * as d3 from 'd3'
 
 const props = defineProps({
     problemId: { type: Number, required: true },
-    testString: { type: String, default: '' }
+    testString: { type: String, default: '' },
+    simKey: { type: Number, default: 0 }
 })
 
 const svgRef = ref(null)
@@ -214,6 +215,7 @@ const advance = (result, idx) => {
 
 const runAuto = () => {
   if (!props.testString) return;
+  doReset();
   const result = initSim()
   isRunning.value = true
   let idx = 0
@@ -397,6 +399,12 @@ watch(() => props.testString, (newStr) => {
         runAuto();
     } else {
         doReset();
+    }
+});
+
+watch(() => props.simKey, () => {
+    if (props.testString) {
+        runAuto();
     }
 });
 

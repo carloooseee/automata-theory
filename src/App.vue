@@ -39,8 +39,10 @@ const updateSimulationInputs = (newInputs) => {
 }
 
 const currentTestString = ref('')
+const simulationKey = ref(0)
 const runSimulation = (str) => {
   currentTestString.value = str
+  simulationKey.value++
 }
 </script>
 
@@ -65,7 +67,7 @@ const runSimulation = (str) => {
         </div>
       </div>
       <!-- <div class="section"><SelectSimulation :inputs="simulationInputs" @start-simulation="runSimulation" /></div> WAG MUNA TO GALAWIN-->
-      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" /></div>
+      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" :simKey="simulationKey" /></div>
     </div>
   </div>
 
