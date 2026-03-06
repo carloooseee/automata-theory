@@ -6,12 +6,13 @@ import NavBar from './components/NavBar.vue'
 import SelectSimulation from './components/SelectSimulation.vue'
 import Diagram from './components/DFAVisualization.vue'
 import PDAVisualization from './components/PDAVisualization.vue'
+import CFGVisualization from './components/CFGVisualization.vue'
 
 const currentView = ref('regex')
 const simulationInputs = ref([])
 
 const automata = ref('automata-theory project')
-
+a
 const problems = ref([
   {
     id: 1,
@@ -82,7 +83,7 @@ const runSimulation = (str) => {
     <div class="split-container">
         <div class="cfg-section">
             <h2>CFG</h2>
-            <!-- CFG Visualization will go here -->
+            <CFGVisualization :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" />
         </div>
         <div class="pda-section">
             <PDAVisualization :problemId="problems[selectedProblemIndex].id" />
