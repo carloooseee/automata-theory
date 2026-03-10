@@ -112,7 +112,13 @@ const DFA_CONFIGS = {
   }
 }
 
+const REGEX_MAP = {
+  1: '(b+aa+ab)(a+b)*(bb+aba+ab)*(aaa+bbb)(a+b)(a+b+ab)*',
+  2: '(1+0)*(11+00+101+010)(1+0+11+00+101)*(11+00)(11+00+101)*(1+0)(1+0+11)*'
+}
+
 const dfa = computed(() => DFA_CONFIGS[props.problemId])
+const problemRegex = computed(() => REGEX_MAP[props.problemId])
 
 const steps = computed(() =>
   simResult.value ? simResult.value.steps : [{ state: dfa.value.start, charIndex: -1, char: null }]
@@ -422,6 +428,7 @@ onUnmounted(() => {
 <template>
   <div class="dfa-container">
     <h3>DFA Visualization (Problem {{ problemId }})</h3>
+    <p v-if="problemRegex" class="regex-display" style="font-size: 1.2rem;"><code>{{ problemRegex }}</code></p>
     
     <!-- Tape -->
     <div v-if="tape.length > 0" class="tape-row">
@@ -470,6 +477,8 @@ onUnmounted(() => {
 }
 
 h3 { margin: 0; color: #222; font-size: 1.1rem; }
+.regex-display { margin: 0; margin-bottom: 0.5rem; font-size: 0.95rem; color: #ffffff; font-weight: 500;}
+.regex-display code { background: #ffffff; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #000000; }
 
 /* Tape */
 .tape-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
