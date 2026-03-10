@@ -90,7 +90,7 @@ const DFA_CONFIGS = {
       { source: 'p5', target: 'p6', label: '0' },
       { source: 'p5', target: 'p7', label: '1' },
       { source: 'p6', target: 'p8', label: '0' },
-      { source: 'p6', target: 'p7', label: '1' },
+      { source: 'p6', target: 'p7', label: '1' , curve: 1, sweep: 0},
       { source: 'p7', target: 'p6', label: '0' },
       { source: 'p7', target: 'p8', label: '1' },
       { source: 'p8', target: 'p9', label: '0', curve: 1, sweep: 0 },
