@@ -20,7 +20,7 @@ const DFA_CONFIGS = {
     start: 'q0',
     accept: ['q8'],
     nodes: [
-      { id: 'q0', label: 'q0', type: 'start', fx: 0, fy: 0 },
+      { id: 'q0', label: '-', type: 'start', fx: 0, fy: 0 },
       { id: 'q1', label: 'q1', type: 'state', fx: 150, fy: -80 },
       { id: 'q2', label: 'q2', type: 'state', fx: 150, fy: 80 },
       { id: 'q3', label: 'q3', type: 'state', fx: 300, fy: -80 },
@@ -28,7 +28,7 @@ const DFA_CONFIGS = {
       { id: 'q5', label: 'q5', type: 'state', fx: 300, fy: 80 },
       { id: 'q6', label: 'q6', type: 'state', fx: 450, fy: 80 },
       { id: 'q7', label: 'q7', type: 'state', fx: 600, fy: 0 },
-      { id: 'q8', label: 'q8', type: 'accept', fx: 750, fy: 0 }
+      { id: 'q8', label: '+', type: 'accept', fx: 750, fy: 0 }
     ],
     links: [
       { source: 'q0', target: 'q1', label: 'a' },
@@ -65,7 +65,7 @@ const DFA_CONFIGS = {
     start: 'p0',
     accept: ['p9'],
     nodes: [
-      { id: 'p0', label: 'p0', type: 'start', fx: 0, fy: 0 },
+      { id: 'p0', label: '-', type: 'start', fx: 0, fy: 0 },
       { id: 'p1', label: 'p1', type: 'state', fx: 150, fy: -100 },
       { id: 'p2', label: 'p2', type: 'state', fx: 150, fy: 100 },
       { id: 'p3', label: 'p3', type: 'state', fx: 300, fy: -150 },
@@ -74,7 +74,7 @@ const DFA_CONFIGS = {
       { id: 'p6', label: 'p6', type: 'state', fx: 600, fy: -80 },
       { id: 'p7', label: 'p7', type: 'state', fx: 600, fy: 80 },
       { id: 'p8', label: 'p8', type: 'state', fx: 750, fy: 0 },
-      { id: 'p9', label: 'A', type: 'accept', fx: 900, fy: 0 }
+      { id: 'p9', label: '+', type: 'accept', fx: 900, fy: 0 }
     ],
     links: [
       { source: 'p0', target: 'p1', label: '0' },
