@@ -6,7 +6,7 @@ const props = defineProps({
   problemId: { type: Number, required: true }, // 0-indexed
 })
 
-const emit = defineEmits(['simulation-update'])
+const emit = defineEmits(['start-simulation'])
 
 const selectedInput = ref('')
 const currentStep   = ref(-1)
@@ -86,101 +86,8 @@ const emitUpdate = (done) => {
 // ─── Controls ────────────────────────────────────────────────────────────────
 
 const startSimulation = () => {
-  stopAuto()
-  if (!selectedInput.value) return
-
-  const { trace, accepted } = buildTrace(selectedInput.value)
-  simulationPath.value = trace
-  isAccepted.value     = accepted
-  currentStep.value    = 0
-  isComplete.value     = false
-
-  emitUpdate(false)
+    emit('start-simulation', selectedInput.value)
 }
-
-const next = () => {
-  if (isComplete.value || simulationPath.value.length === 0) return
-
-  const nextStep = currentStep.value + 1
-
-  if (nextStep >= simulationPath.value.length) {
-    isComplete.value = true
-    emitUpdate(true)
-    return
-  }
-
-  currentStep.value = nextStep
-  const done = nextStep === simulationPath.value.length - 1
-
-  if (done) isComplete.value = true
-  emitUpdate(done)
-}
-
-const stopAuto = () => {
-  if (autoTimer) {
-    clearInterval(autoTimer)
-    autoTimer = null
-  }
-  autoRunning.value = false
-}
-
-const auto = () => {
-  if (autoRunning.value) {
-    stopAuto()
-    return
-  }
-  if (isComplete.value) return
-
-  if (simulationPath.value.length === 0) {
-    startSimulation()
-  }
-
-  autoRunning.value = true
-  autoTimer = setInterval(() => {
-    if (isComplete.value) {
-      stopAuto()
-      return
-    }
-    next()
-  }, 650)
-}
-
-const reset = () => {
-  stopAuto()
-  currentStep.value    = -1
-  simulationPath.value = []
-  isComplete.value     = false
-  isAccepted.value     = false
-  emit('simulation-update', {
-    path: [], currentStep: -1, isComplete: false, isAccepted: false, input: '',
-  })
-}
-
-watch(() => props.problemId, reset)
-watch(selectedInput, reset)
-
-// ─── Display helpers ─────────────────────────────────────────────────────────
-
-const currentState = computed(() => {
-  const entry = simulationPath.value[currentStep.value]
-  return entry ? entry.state : null
-})
-
-const currentChar = computed(() => {
-  const entry = simulationPath.value[currentStep.value]
-  return entry && entry.char !== null ? entry.char : null
-})
-
-const tape = computed(() => {
-  if (!selectedInput.value || simulationPath.value.length === 0) return []
-  return selectedInput.value.split('').map((ch, i) => {
-    const step = currentStep.value
-    if (step <= 0) return { ch, status: 'pending' }
-    if (i < step - 1)   return { ch, status: 'done'    }
-    if (i === step - 1) return { ch, status: 'active'  }
-    return { ch, status: 'pending' }
-  })
-})
 </script>
 
 <template>

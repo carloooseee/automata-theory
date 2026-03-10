@@ -37,6 +37,13 @@ const setView = (view) => {
 const updateSimulationInputs = (newInputs) => {
   simulationInputs.value = newInputs
 }
+
+const currentTestString = ref('')
+const simulationKey = ref(0)
+const runSimulation = (str) => {
+  currentTestString.value = str
+  simulationKey.value++
+}
 </script>
 
 <template>
@@ -56,11 +63,11 @@ const updateSimulationInputs = (newInputs) => {
         </div>
         <div class="section input-section">
           <h2>Test your Strings</h2>
-          <InputArea :regexStr="currentRegex" @inputs-updated="updateSimulationInputs" />
+          <InputArea :regexStr="currentRegex" @inputs-updated="updateSimulationInputs" @simulate-string="runSimulation" /> <!--Simulation BUTTON-->
         </div>
       </div>
-      <div class="section"><SelectSimulation :inputs="simulationInputs" /></div>
-      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" /></div>
+      <!-- <div class="section"><SelectSimulation :inputs="simulationInputs" @start-simulation="runSimulation" /></div> WAG MUNA TO GALAWIN-->
+      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" :simKey="simulationKey" /></div>
     </div>
   </div>
 
@@ -68,9 +75,9 @@ const updateSimulationInputs = (newInputs) => {
     <h1 class="main-title">{{ automata }}</h1>
     <p class="main-title">Interactive Pushdown Automata Simulator</p>
     
-    <div class="simulation-controls">
-        <SelectSimulation :inputs="simulationInputs" />
-    </div>
+    <!-- <div class="simulation-controls">
+        <SelectSimulation :inputs="simulationInputs" /> Wag muna to galawin guys! finollow k muna ung intended design ni mam
+    </div> -->
 
     <div class="split-container">
         <div class="cfg-section">

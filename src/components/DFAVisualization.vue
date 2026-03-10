@@ -1,70 +1,126 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { ref, watch, nextTick, computed, onUnmounted } from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
-  problemId: { type: Number, required: true }, // 1 or 2
+    problemId: { type: Number, required: true },
+    testString: { type: String, default: '' },
+    simKey:     { type: Number, default: 0 }
 })
 
-// ─── DFA definitions (problemId 1 → key 0, problemId 2 → key 1) ──────────────
+const svgRef       = ref(null)
+const stepIndex    = ref(0)
+const isRunning    = ref(false)
+const done         = ref(false)
+const simResult    = ref(null)
+const autoTimer    = ref(null)
+const hasSimulated = ref(false)   // diagram is hidden until Simulate is clicked
+const stepMode     = ref(false)
+const computationLog = ref([])
+
+// ─────────────────────────────────────────────
+//  DFA CONFIGS
+// ─────────────────────────────────────────────
 const DFA_CONFIGS = {
   1: {
-    label: 'Problem 1',
-    alphabet: ['a', 'b'],
-    states: {
-      q0: { label: 'q₀', x: 80,  y: 200 },
-      q1: { label: 'q₁', x: 230, y: 110 },
-      q2: { label: 'q₂', x: 380, y: 110 },
-      q3: { label: 'q₃', x: 230, y: 290 },
-      q4: { label: 'q₄', x: 380, y: 290 },
-      q5: { label: 'q₅', x: 520, y: 200 },
-    },
     start: 'q0',
-    accept: ['q5'],
+    accept: ['q8'],
+    nodes: [
+      { id: 'q0', label: 'q0', type: 'start',  fx: 0,   fy: 0   },
+      { id: 'q1', label: 'q1', type: 'state',  fx: 150, fy: -80 },
+      { id: 'q2', label: 'q2', type: 'state',  fx: 150, fy: 80  },
+      { id: 'q3', label: 'q3', type: 'state',  fx: 300, fy: -80 },
+      { id: 'q4', label: 'q4', type: 'state',  fx: 450, fy: -80 },
+      { id: 'q5', label: 'q5', type: 'state',  fx: 300, fy: 80  },
+      { id: 'q6', label: 'q6', type: 'state',  fx: 450, fy: 80  },
+      { id: 'q7', label: 'q7', type: 'state',  fx: 600, fy: 0   },
+      { id: 'q8', label: 'q8', type: 'accept', fx: 750, fy: 0   }
+    ],
+    links: [
+      { source: 'q0', target: 'q1', label: 'a' },
+      { source: 'q0', target: 'q2', label: 'b' },
+      { source: 'q1', target: 'q2', label: 'a', curve: 1, sweep: 0 },
+      { source: 'q1', target: 'q2', label: 'b', curve: 1, sweep: 1 },
+      { source: 'q2', target: 'q3', label: 'a' },
+      { source: 'q2', target: 'q5', label: 'b' },
+      { source: 'q3', target: 'q4', label: 'a' },
+      { source: 'q3', target: 'q5', label: 'b', curve: 1, sweep: 0 },
+      { source: 'q4', target: 'q7', label: 'a' },
+      { source: 'q4', target: 'q5', label: 'b' },
+      { source: 'q5', target: 'q3', label: 'a' },
+      { source: 'q5', target: 'q6', label: 'b' },
+      { source: 'q6', target: 'q3', label: 'a' },
+      { source: 'q6', target: 'q7', label: 'b' },
+      { source: 'q7', target: 'q8', label: 'a', curve: 1, sweep: 0 },
+      { source: 'q7', target: 'q8', label: 'b', curve: 1, sweep: 1 },
+      { source: 'q8', target: 'q8', label: 'a, b' }
+    ],
     transitions: {
-      q0: { a: 'q1', b: 'q3' },
-      q1: { a: 'q2', b: 'q3' },
-      q2: { a: 'q5', b: 'q4' },
-      q3: { a: 'q1', b: 'q5' },
-      q4: { a: 'q2', b: 'q3' },
-      q5: { a: 'q5', b: 'q5' },
-    },
+      q0: { a: 'q1', b: 'q2' },
+      q1: { a: 'q2', b: 'q2' },
+      q2: { a: 'q3', b: 'q5' },
+      q3: { a: 'q4', b: 'q5' },
+      q4: { a: 'q7', b: 'q5' },
+      q5: { a: 'q3', b: 'q6' },
+      q6: { a: 'q3', b: 'q7' },
+      q7: { a: 'q8', b: 'q8' },
+      q8: { a: 'q8', b: 'q8' }
+    }
   },
   2: {
-    label: 'Problem 2',
-    alphabet: ['0', '1'],
-    states: {
-      r0: { label: 'r₀', x: 80,  y: 200 },
-      r1: { label: 'r₁', x: 280, y: 100 },
-      r2: { label: 'r₂', x: 280, y: 300 },
-    },
-    start: 'r0',
-    accept: ['r0'],
+    start: 'p0',
+    accept: ['p9'],
+    nodes: [
+      { id: 'p0', label: 'p0', type: 'start',  fx: 0,   fy: 0    },
+      { id: 'p1', label: 'p1', type: 'state',  fx: 150, fy: -100 },
+      { id: 'p2', label: 'p2', type: 'state',  fx: 150, fy: 100  },
+      { id: 'p3', label: 'p3', type: 'state',  fx: 300, fy: -150 },
+      { id: 'p4', label: 'p4', type: 'state',  fx: 300, fy: 100  },
+      { id: 'p5', label: 'p5', type: 'state',  fx: 450, fy: 0    },
+      { id: 'p6', label: 'p6', type: 'state',  fx: 600, fy: -80  },
+      { id: 'p7', label: 'p7', type: 'state',  fx: 600, fy: 80   },
+      { id: 'p8', label: 'p8', type: 'state',  fx: 750, fy: 0    },
+      { id: 'p9', label: 'A',  type: 'accept', fx: 900, fy: 0    }
+    ],
+    links: [
+      { source: 'p0', target: 'p1', label: '0' },
+      { source: 'p0', target: 'p2', label: '1' },
+      { source: 'p1', target: 'p5', label: '0' },
+      { source: 'p1', target: 'p3', label: '1' },
+      { source: 'p2', target: 'p4', label: '0' },
+      { source: 'p2', target: 'p5', label: '1' },
+      { source: 'p3', target: 'p5', label: '0', curve: 1, sweep: 0 },
+      { source: 'p3', target: 'p5', label: '1', curve: 1, sweep: 1 },
+      { source: 'p4', target: 'p5', label: '0', curve: 1, sweep: 0 },
+      { source: 'p4', target: 'p5', label: '1', curve: 1, sweep: 1 },
+      { source: 'p5', target: 'p6', label: '0' },
+      { source: 'p5', target: 'p7', label: '1' },
+      { source: 'p6', target: 'p8', label: '0' },
+      { source: 'p6', target: 'p7', label: '1', curve: 1, sweep: 0},
+      { source: 'p7', target: 'p6', label: '0' },
+      { source: 'p7', target: 'p8', label: '1' },
+      { source: 'p8', target: 'p9', label: '0', curve: 1, sweep: 0 },
+      { source: 'p8', target: 'p9', label: '1', curve: 1, sweep: 1 },
+      { source: 'p9', target: 'p9', label: '0, 1' }
+    ],
     transitions: {
-      r0: { '0': 'r0', '1': 'r1' },
-      r1: { '0': 'r2', '1': 'r0' },
-      r2: { '0': 'r1', '1': 'r2' },
-    },
-  },
+      p0: { '0': 'p1', '1': 'p2' },
+      p1: { '0': 'p5', '1': 'p3' },
+      p2: { '0': 'p4', '1': 'p5' },
+      p3: { '0': 'p5', '1': 'p5' },
+      p4: { '0': 'p5', '1': 'p5' },
+      p5: { '0': 'p6', '1': 'p7' },
+      p6: { '0': 'p8', '1': 'p7' },
+      p7: { '0': 'p6', '1': 'p8' },
+      p8: { '0': 'p9', '1': 'p9' },
+      p9: { '0': 'p9', '1': 'p9' }
+    }
+  }
 }
 
-// ─── State ────────────────────────────────────────────────────────────────────
-const svgRef     = ref(null)
-const inputStr   = ref('')
-const stepIndex  = ref(0)
-const simResult  = ref(null)   // { steps, accepted }
-const isRunning  = ref(false)
-const done       = ref(false)
-const activeEdge = ref(null)   // 'srcId-tgtId'
-const tracerKey  = ref(0)
-const autoTimer  = ref(null)
-
-// Mutable D3 refs
-let _svg     = null
-let _tracerG = null
-let _pathMap = {}  // 'srcId-tgtId' → SVGPathElement
-
-// ─── Computed ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  COMPUTED
+// ─────────────────────────────────────────────
 const dfa = computed(() => DFA_CONFIGS[props.problemId])
 
 const steps = computed(() =>
@@ -73,43 +129,40 @@ const steps = computed(() =>
     : [{ state: dfa.value.start, charIndex: -1, char: null }]
 )
 
-const currentStep = computed(() =>
-  steps.value[stepIndex.value] || steps.value[steps.value.length - 1]
-)
-
-const currentState = computed(() => currentStep.value?.state ?? null)
-const currentCharIdx = computed(() =>
-  simResult.value ? (steps.value[stepIndex.value]?.charIndex ?? -1) : -1
-)
-
+const currentStep    = computed(() => steps.value[stepIndex.value] ?? steps.value[steps.value.length - 1])
+const currentState   = computed(() => currentStep.value?.state ?? null)
+const currentCharIdx = computed(() => simResult.value ? (steps.value[stepIndex.value]?.charIndex ?? -1) : -1)
 const resultAccepted = computed(() => done.value && !!simResult.value?.accepted)
-const resultRejected = computed(() => done.value && !simResult.value?.accepted)
-
-const tracerColor = computed(() =>
-  done.value
-    ? (resultAccepted.value ? '#22c55e' : '#ef4444')
-    : '#f59e0b'
-)
 
 const tape = computed(() => {
-  if (!inputStr.value) return []
-  return inputStr.value.split('').map((ch, i) => {
+  if (!props.testString) return []
+  return props.testString.split('').map((ch, i) => {
     const idx = currentCharIdx.value
-    if (!simResult.value) return { ch, status: 'pending' }
-    if (i < idx)  return { ch, status: 'done' }
-    if (i === idx) return { ch, status: 'active' }
+    if (!simResult.value)  return { ch, status: 'pending' }
+    if (i < idx)           return { ch, status: 'done'    }
+    if (i === idx)         return { ch, status: 'active'  }
     return { ch, status: 'pending' }
   })
 })
 
-// ─── Simulation logic ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+//  SIMULATION LOGIC
+// ─────────────────────────────────────────────
 const runSimulation = (input) => {
   const d = dfa.value
   const stepsList = [{ state: d.start, charIndex: -1, char: null }]
   let current = d.start
+
   for (let i = 0; i < input.length; i++) {
     const ch = input[i]
-    const next = d.transitions[current]?.[ch]
+    let next = d.transitions[current]?.[ch]
+
+    if (!next) {
+      for (const [key, val] of Object.entries(d.transitions[current] ?? {})) {
+        if (key.includes(ch)) { next = val; break }
+      }
+    }
+
     if (next === undefined) {
       stepsList.push({ state: null, charIndex: i, char: ch, dead: true })
       return { steps: stepsList, accepted: false }
@@ -121,341 +174,315 @@ const runSimulation = (input) => {
 }
 
 const initSim = () => {
-  const result = runSimulation(inputStr.value)
+  const result = runSimulation(props.testString)
   simResult.value = result
   return result
 }
 
+// ─────────────────────────────────────────────
+//  D3 HIGHLIGHT
+// ─────────────────────────────────────────────
+const highlightElements = (fromId, toId) => {
+  d3.select(svgRef.value).selectAll('circle')
+    .attr('stroke', '#fff').attr('stroke-width', 1.5).style('filter', null)
+  d3.select(svgRef.value).selectAll('path.edge')
+    .attr('stroke', 'black').attr('stroke-width', 2)
+
+  const color = done.value
+    ? (resultAccepted.value ? '#22c55e' : '#ef4444')
+    : '#f59e0b'
+
+  if (toId) {
+    d3.select(svgRef.value).select(`#node-${toId}`)
+      .attr('stroke', color).attr('stroke-width', 3.5)
+      .style('filter', `drop-shadow(0 0 8px ${color})`)
+  } else if (fromId && !toId) {
+    d3.select(svgRef.value).select(`#node-${fromId}`)
+      .attr('stroke', '#ef4444').attr('stroke-width', 3.5)
+      .style('filter', `drop-shadow(0 0 8px #ef4444)`)
+  }
+
+  if (fromId && toId) {
+    const char = currentStep.value?.char
+    if (char) {
+      const specific = d3.select(svgRef.value).select(`#link-${fromId}-${toId}-${char}`)
+      if (!specific.empty()) {
+        specific.attr('stroke', color).attr('stroke-width', 3)
+      } else {
+        d3.select(svgRef.value).select(`#link-${fromId}-${toId}`).attr('stroke', color).attr('stroke-width', 3)
+      }
+    } else {
+      d3.select(svgRef.value).select(`path[id^="link-${fromId}-${toId}"]`).attr('stroke', color).attr('stroke-width', 3)
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+//  ADVANCE  (moves result[idx] → result[idx+1])
+// ─────────────────────────────────────────────
 const advance = (result, idx) => {
   const from = result.steps[idx].state
   const to   = result.steps[idx + 1]?.state
-  activeEdge.value = (from && to) ? `${from}-${to}` : null
-  tracerKey.value++
   stepIndex.value = idx + 1
 
-  // Draw tracer
-  if (from && to) {
-    drawTracer(from, to, tracerColor.value)
-    highlightEdge(from, to, tracerColor.value)
-  }
-  if (to) highlightNode(to, tracerColor.value)
-  else if (!to && from) highlightNode(from, '#ef4444') // dead state
+  computationLog.value.push({
+    step: idx + 1,
+    from: from ?? '—',
+    char: result.steps[idx + 1]?.char ?? '—',
+    to:   to   ?? 'dead',
+    dead: result.steps[idx + 1]?.dead ?? false
+  })
+
+  highlightElements(from, to)
 
   if (idx + 1 >= result.steps.length - 1) done.value = true
 }
 
-const goNext = () => {
-  const result = simResult.value || initSim()
-  if (stepIndex.value >= result.steps.length - 1) { done.value = true; return }
-  advance(result, stepIndex.value)
+// ─────────────────────────────────────────────
+//  STEP MODE  —  Next button
+//
+//  stepIndex starts at 0 (we are AT the start state, nothing read yet).
+//  advance(result, idx) reads result.steps[idx] → result.steps[idx+1].
+//  So calling advance(result, stepIndex.value) is always correct:
+//    stepIndex=0 → moves start→first char
+//    stepIndex=1 → moves first→second char  … etc.
+// ─────────────────────────────────────────────
+const doNext = () => {
+  if (!simResult.value || done.value || !stepMode.value) return
+  const idx = stepIndex.value
+  if (idx >= simResult.value.steps.length - 1) {
+    done.value = true
+    return
+  }
+  advance(simResult.value, idx)
 }
 
+const doBack = () => {
+  if (!simResult.value || !stepMode.value || stepIndex.value === 0) return
+  // Remove the last log entry
+  computationLog.value.pop()
+  // If we were done, un-done
+  done.value = false
+  // Step back
+  const prevIdx = stepIndex.value - 1
+  stepIndex.value = prevIdx
+  // Re-highlight the state we are now at
+  const prevState = simResult.value.steps[prevIdx]?.state
+  highlightElements(null, prevState)
+}
+
+const startStepMode = () => {
+  clearInterval(autoTimer.value)
+  autoTimer.value = null
+  isRunning.value = false
+  stepMode.value  = true
+  done.value      = false
+  stepIndex.value = 0
+  computationLog.value = []
+
+  const result = initSim()
+
+  // Log initial state
+  computationLog.value.push({
+    step: 0, from: '—', char: 'start',
+    to: result.steps[0].state, dead: false
+  })
+  highlightElements(null, result.steps[0].state)
+}
+
+// ─────────────────────────────────────────────
+//  AUTO RUN
+// ─────────────────────────────────────────────
 const runAuto = () => {
-  const result = simResult.value || initSim()
+  clearInterval(autoTimer.value)
+  stepMode.value = false
+  done.value     = false
+  stepIndex.value = 0
+  computationLog.value = []
+
+  const result = initSim()
   isRunning.value = true
-  let idx = stepIndex.value
+
+  highlightElements(null, result.steps[0].state)
+  computationLog.value.push({
+    step: 0, from: '—', char: 'start',
+    to: result.steps[0].state, dead: false
+  })
+
+  let idx = 0
   const max = result.steps.length - 1
+
   autoTimer.value = setInterval(() => {
     if (idx >= max) {
       clearInterval(autoTimer.value)
       autoTimer.value = null
       isRunning.value = false
       done.value = true
+      highlightElements(null, result.steps[max].state)
       return
     }
     advance(result, idx)
     idx++
-    if (idx >= max) {
-      clearInterval(autoTimer.value)
-      autoTimer.value = null
-      isRunning.value = false
-      done.value = true
-    }
   }, 800)
 }
 
+// ─────────────────────────────────────────────
+//  RESET
+// ─────────────────────────────────────────────
 const doReset = () => {
   clearInterval(autoTimer.value)
-  autoTimer.value = null
-  isRunning.value = false
-  stepIndex.value = 0
-  done.value      = false
-  activeEdge.value = null
+  autoTimer.value  = null
+  isRunning.value  = false
+  stepIndex.value  = 0
+  done.value       = false
   simResult.value  = null
-  tracerKey.value++
-  clearHighlights()
-  // Highlight start node
-  if (_svg) highlightNode(dfa.value.start, '#f59e0b')
-}
+  stepMode.value   = false
+  computationLog.value = []
 
-// ─── D3 render ────────────────────────────────────────────────────────────────
-const buildEdges = () => {
-  const edges = []
-  const seen  = new Set()
-  const d = dfa.value
-  for (const [src, map] of Object.entries(d.transitions)) {
-    const grouped = {}
-    for (const [ch, tgt] of Object.entries(map)) {
-      grouped[tgt] = grouped[tgt] ? `${grouped[tgt]},${ch}` : ch
-    }
-    for (const [tgt, label] of Object.entries(grouped)) {
-      const key = `${src}-${tgt}`
-      if (!seen.has(key)) { seen.add(key); edges.push({ src, tgt, label, key }) }
-    }
+  if (svgRef.value) {
+    d3.select(svgRef.value).selectAll('circle').attr('stroke', '#fff').attr('stroke-width', 1.5).style('filter', null)
+    d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'black').attr('stroke-width', 2)
   }
-  return edges
 }
 
-const edgePath = (src, tgt) => {
-  const states = dfa.value.states
-  const s = states[src], t = states[tgt]
-  if (!s || !t) return ''
-  if (src === tgt) {
-    return `M${s.x - 12},${s.y - 22} C${s.x - 40},${s.y - 80} ${s.x + 40},${s.y - 80} ${s.x + 12},${s.y - 22}`
-  }
-  const dx = t.x - s.x, dy = t.y - s.y
-  const len = Math.sqrt(dx * dx + dy * dy) || 1
-  const nx = -dy / len, ny = dx / len
-  const bend = len * 0.3
-  const ex = t.x - (dx / len) * 26
-  const ey = t.y - (dy / len) * 26
-  return `M${s.x},${s.y} Q${(s.x + t.x) / 2 + nx * bend},${(s.y + t.y) / 2 + ny * bend} ${ex},${ey}`
-}
-
-const edgeLabelPos = (src, tgt) => {
-  const states = dfa.value.states
-  const s = states[src], t = states[tgt]
-  if (!s || !t) return { x: 0, y: 0 }
-  if (src === tgt) return { x: s.x, y: s.y - 84 }
-  const dx = t.x - s.x, dy = t.y - s.y
-  const len = Math.sqrt(dx * dx + dy * dy) || 1
-  const nx = -dy / len, ny = dx / len
-  return { x: (s.x + t.x) / 2 + nx * len * 0.18, y: (s.y + t.y) / 2 + ny * len * 0.18 - 4 }
-}
-
+// ─────────────────────────────────────────────
+//  RENDER DFA
+// ─────────────────────────────────────────────
 const renderDFA = () => {
   if (!svgRef.value) return
-  _pathMap = {}
+  const data = dfa.value
   d3.select(svgRef.value).selectAll('*').remove()
 
-  const d      = dfa.value
-  const states = d.states
-  const edges  = buildEdges()
+  const svg = d3.select(svgRef.value).style('overflow', 'hidden')
 
-  const xs = Object.values(states).map(s => s.x)
-  const ys = Object.values(states).map(s => s.y)
-  const pad = 60
-  const minX = Math.min(...xs) - pad
-  const minY = Math.min(...ys) - pad
-  const w    = Math.max(...xs) - Math.min(...xs) + pad * 2
-  const h    = Math.max(...ys) - Math.min(...ys) + pad * 2
+  svg.append('defs').selectAll('marker')
+    .data(['end']).enter().append('marker')
+    .attr('id', 'arrow')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 25).attr('refY', 0)
+    .attr('markerWidth', 6).attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#000')
 
-  const svg = d3.select(svgRef.value)
-    .attr('width', '100%')
-    .attr('viewBox', `${minX} ${minY} ${w + pad} ${h}`)
-    .attr('height', h)
-    .style('overflow', 'visible')
-  _svg = svg
+  const simulation = d3.forceSimulation(data.nodes)
+    .force('link', d3.forceLink(data.links).id(d => d.id))
 
-  // Markers
-  const defs = svg.append('defs')
-  ;[
-    { id: 'arr-dim',   c: '#aaa'    },
-    { id: 'arr-amber', c: '#f59e0b' },
-    { id: 'arr-green', c: '#22c55e' },
-    { id: 'arr-red',   c: '#ef4444' },
-  ].forEach(({ id, c }) => {
-    defs.append('marker')
-      .attr('id', id).attr('viewBox', '0 -5 10 10')
-      .attr('refX', 22).attr('refY', 0)
-      .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
-      .append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', c)
+  const link = svg.append('g').selectAll('path')
+    .data(data.links).join('path')
+    .attr('class', 'edge')
+    .attr('id', d => `link-${d.source.id ?? d.source}-${d.target.id ?? d.target}-${d.label}`)
+    .attr('fill', 'none').attr('stroke', 'black')
+    .attr('stroke-width', 2).attr('marker-end', 'url(#arrow)')
+
+  const linkLabel = svg.append('g').selectAll('text')
+    .data(data.links).join('text').text(d => d.label)
+    .attr('font-size', '14px').attr('fill', '#e63946')
+    .attr('font-weight', 'bold').attr('text-anchor', 'middle')
+    .style('paint-order', 'stroke').style('stroke', '#ffffff')
+    .style('stroke-width', '5px').style('stroke-linejoin', 'round')
+
+  const node = svg.append('g').selectAll('circle')
+    .data(data.nodes).join('circle')
+    .attr('id', d => `node-${d.id}`)
+    .attr('stroke', '#fff').attr('stroke-width', 1.5).attr('r', 20)
+    .attr('fill', d => d.type === 'accept' ? '#4caf50' : d.type === 'start' ? '#ff9800' : '#2196f3')
+
+  const label = svg.append('g').selectAll('text')
+    .data(data.nodes).join('text').text(d => d.label)
+    .attr('dy', 5).attr('text-anchor', 'middle')
+    .attr('font-size', '12px').attr('pointer-events', 'none')
+    .attr('fill', 'white').attr('font-weight', 'bold')
+
+  simulation.tick(300)
+
+  link.attr('d', d => {
+    const dx = d.target.x - d.source.x
+    const dy = d.target.y - d.source.y
+
+    if (d.source === d.target) {
+      const size    = d.curve ? 20 * d.curve : 20
+      const yOffset = d.curve ? 18 + (d.curve - 1) * 20 : 18
+      return `M${d.source.x - 10},${d.source.y - yOffset} A ${size} ${size} 0 1 1 ${d.source.x + 10},${d.source.y - yOffset}`
+    }
+
+    let dr = Math.sqrt(dx * dx + dy * dy)
+    let finalSweep
+    if (d.sweep !== undefined) {
+      finalSweep = d.sweep
+    } else {
+      const sn = parseInt((d.source.id ?? d.source).replace(/\D/g, '')) || 0
+      const tn = parseInt((d.target.id ?? d.target).replace(/\D/g, '')) || 0
+      finalSweep = sn < tn ? 1 : 0
+    }
+
+    if (d.curve && d.curve > 1000) {
+      return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`
+    }
+    dr = dr * (d.curve || 1.3)
+    return `M${d.source.x},${d.source.y} A ${dr} ${dr} 0 0 ${finalSweep} ${d.target.x},${d.target.y}`
   })
 
-  // Start arrow
-  const startState = states[d.start]
-  svg.append('line')
-    .attr('x1', startState.x - 44).attr('y1', startState.y)
-    .attr('x2', startState.x - 24).attr('y2', startState.y)
-    .attr('stroke', '#999').attr('stroke-width', 2)
-    .attr('marker-end', 'url(#arr-dim)')
-
-  // Edge base layer
-  const edgeG = svg.append('g')
-
-  const linkSel = edgeG.selectAll('path.edge-base')
-    .data(edges)
-    .join('path')
-    .attr('class', d => `edge-base`)
-    .attr('fill', 'none')
-    .attr('stroke', '#aaa')
-    .attr('stroke-width', 1.5)
-    .attr('marker-end', 'url(#arr-dim)')
-    .attr('d', d => edgePath(d.src, d.tgt))
-
-  edgeG.selectAll('text.edge-label')
-    .data(edges)
-    .join('text')
-    .attr('class', 'edge-label')
-    .text(d => d.label)
-    .attr('font-size', '11px')
-    .attr('fill', '#555')
-    .attr('text-anchor', 'middle')
-    .each(function (d) {
-      const lp = edgeLabelPos(d.src, d.tgt)
-      d3.select(this).attr('x', lp.x).attr('y', lp.y)
+  linkLabel
+    .attr('x', d => {
+      if (d.source === d.target) return d.source.x
+      return link.nodes()[data.links.indexOf(d)].getPointAtLength(
+        0.5 * link.nodes()[data.links.indexOf(d)].getTotalLength()
+      ).x
+    })
+    .attr('y', d => {
+      if (d.source === d.target) return d.source.y - 45
+      return link.nodes()[data.links.indexOf(d)].getPointAtLength(
+        0.5 * link.nodes()[data.links.indexOf(d)].getTotalLength()
+      ).y
     })
 
-  // Tracer layer
-  _tracerG = svg.append('g').attr('class', 'tracer-layer')
+  node.attr('cx', d => d.x).attr('cy', d => d.y)
+  label.attr('x', d => d.x).attr('y', d => d.y)
 
-  // Node layer
-  const nodeG = svg.append('g')
-
-  nodeG.selectAll('circle.node-outer')
-    .data(Object.entries(states).filter(([id]) => d.accept.includes(id)))
-    .join('circle')
-    .attr('class', 'node-outer')
-    .attr('cx', ([, s]) => s.x).attr('cy', ([, s]) => s.y)
-    .attr('r', 26).attr('fill', 'none')
-    .attr('stroke', '#4caf50').attr('stroke-width', 1.5)
-
-  nodeG.selectAll('circle.node-bg')
-    .data(Object.entries(states))
-    .join('circle')
-    .attr('class', ([id]) => `node-bg node-${id}`)
-    .attr('cx', ([, s]) => s.x).attr('cy', ([, s]) => s.y).attr('r', 20)
-    .attr('fill', ([id]) => d.accept.includes(id) ? '#4caf50' : id === d.start ? '#ff9800' : '#2196f3')
-    .attr('stroke', '#fff').attr('stroke-width', 1.5)
-
-  nodeG.selectAll('text.node-label')
-    .data(Object.entries(states))
-    .join('text')
-    .attr('class', 'node-label')
-    .text(([, s]) => s.label)
-    .attr('x', ([, s]) => s.x).attr('y', ([, s]) => s.y + 4)
-    .attr('text-anchor', 'middle')
-    .attr('font-size', '11px').attr('font-weight', 'bold')
-    .attr('fill', 'white').attr('pointer-events', 'none')
-
-  // Store path elements for tracer
-  linkSel.each(function (d) { _pathMap[`${d.src}-${d.tgt}`] = this })
-
-  // Highlight start node on initial render
-  highlightNode(d.start, '#f59e0b')
+  if (data.nodes.length > 0) {
+    const minX = Math.min(...data.nodes.map(n => n.x))
+    const maxX = Math.max(...data.nodes.map(n => n.x))
+    const minY = Math.min(...data.nodes.map(n => n.y))
+    const maxY = Math.max(...data.nodes.map(n => n.y))
+    const padding = 80
+    svg.attr('viewBox', `${minX - padding} ${minY - padding} ${maxX - minX + padding * 2} ${maxY - minY + padding * 2}`)
+       .style('width', '100%').style('max-width', '800px').style('max-height', '400px')
+  }
+  simulation.stop()
 }
 
-// ─── Arrow tracer (same as React ArrowTracer) ─────────────────────────────────
-const drawTracer = (srcId, tgtId, color) => {
-  if (!_tracerG) return
-  _tracerG.selectAll('*').remove()
+// ─────────────────────────────────────────────
+//  WATCHERS
+// ─────────────────────────────────────────────
 
-  const baseEl = _pathMap[`${srcId}-${tgtId}`]
-  if (!baseEl) return
-
-  const d_attr = baseEl.getAttribute('d')
-  const len    = baseEl.getTotalLength()
-  if (!len) return
-
-  const dur     = `${Math.max(0.32, len / 380)}s`
-  const dashLen = Math.max(len * 0.28, 14)
-  const key     = tracerKey.value
-
-  // Glow trail
-  _tracerG.append('path')
-    .attr('d', d_attr).attr('fill', 'none')
-    .attr('stroke', color).attr('stroke-width', 5)
-    .attr('stroke-opacity', 0.2).attr('stroke-linecap', 'round')
-
-  // Racing dash
-  const dash = _tracerG.append('path')
-    .attr('d', d_attr).attr('fill', 'none')
-    .attr('stroke', color).attr('stroke-width', 3)
-    .attr('stroke-linecap', 'round')
-    .attr('stroke-dasharray', `${dashLen} ${len + dashLen}`)
-    .attr('stroke-dashoffset', len + dashLen)
-    .style('filter', `drop-shadow(0 0 5px ${color})`)
-
-  dash.append('animate')
-    .attr('attributeName', 'stroke-dashoffset')
-    .attr('from', len + dashLen).attr('to', -dashLen)
-    .attr('dur', dur).attr('fill', 'freeze')
-    .attr('calcMode', 'spline').attr('keySplines', '0.4 0 0.2 1')
-
-  // Leading dot via animateMotion
-  const mpId = `mp-${key}`
-  _tracerG.append('path').attr('id', mpId).attr('d', d_attr)
-    .attr('fill', 'none').attr('stroke', 'none')
-
-  const dot = _tracerG.append('circle').attr('r', 5).attr('fill', color)
-    .style('filter', `drop-shadow(0 0 7px ${color})`)
-
-  const motion = dot.append('animateMotion')
-    .attr('dur', dur).attr('fill', 'freeze')
-    .attr('calcMode', 'spline').attr('keySplines', '0.4 0 0.2 1')
-  motion.append('mpath').attr('href', `#${mpId}`)
-
-  dot.append('animate')
-    .attr('attributeName', 'opacity')
-    .attr('values', '0;1;1;0').attr('keyTimes', '0;0.05;0.85;1')
-    .attr('dur', dur).attr('fill', 'freeze')
-}
-
-// ─── Highlight helpers ────────────────────────────────────────────────────────
-const highlightNode = (nodeId, color) => {
-  if (!_svg) return
-  _svg.selectAll('circle.node-bg')
-    .attr('stroke', ([id]) => id === nodeId ? color : '#fff')
-    .attr('stroke-width', ([id]) => id === nodeId ? 3.5 : 1.5)
-    .style('filter', ([id]) => id === nodeId ? `drop-shadow(0 0 8px ${color})` : null)
-}
-
-const highlightEdge = (srcId, tgtId, color) => {
-  if (!_svg) return
-  const markId = color === '#22c55e' ? 'arr-green'
-               : color === '#ef4444' ? 'arr-red'
-               : 'arr-amber'
-  _svg.selectAll('path.edge-base')
-    .attr('stroke', d => d.src === srcId && d.tgt === tgtId ? color : '#aaa')
-    .attr('stroke-width', d => d.src === srcId && d.tgt === tgtId ? 2.5 : 1.5)
-    .attr('marker-end', d =>
-      d.src === srcId && d.tgt === tgtId ? `url(#${markId})` : 'url(#arr-dim)'
-    )
-}
-
-const clearHighlights = () => {
-  if (!_svg) return
-  _svg.selectAll('circle.node-bg').attr('stroke', '#fff').attr('stroke-width', 1.5).style('filter', null)
-  _svg.selectAll('path.edge-base').attr('stroke', '#aaa').attr('stroke-width', 1.5).attr('marker-end', 'url(#arr-dim)')
-  _tracerG?.selectAll('*').remove()
-}
-
-// ─── Watchers + lifecycle ─────────────────────────────────────────────────────
+// Problem changed → reset and hide diagram until simulate clicked again
 watch(() => props.problemId, () => {
   doReset()
-  renderDFA()
+  hasSimulated.value = false
 })
 
-watch(inputStr, () => doReset())
+// simKey increments when Simulate button is clicked in InputArea
+// This is the ONLY trigger that should show + run the diagram
+watch(() => props.simKey, (newKey) => {
+  if (newKey === 0) return
+  hasSimulated.value = true
+  nextTick(() => {
+    renderDFA()
+    runAuto()
+  })
+})
 
-onMounted(() => renderDFA())
-onUnmounted(() => clearInterval(autoTimer.value))
+onUnmounted(() => {
+  clearInterval(autoTimer.value)
+})
 </script>
 
 <template>
-  <div class="dfa-container">
+  <!-- Diagram is hidden until the user clicks Simulate -->
+  <div v-if="hasSimulated" class="dfa-container">
     <h3>DFA Visualization (Problem {{ problemId }})</h3>
 
-    <!-- Input field -->
-    <div class="input-row">
-      <input
-        v-model="inputStr"
-        :placeholder="`Enter string over {${dfa.alphabet.join(',')}}`"
-        class="input-field"
-      />
-    </div>
-
-    <!-- Tape -->
+    <!-- Tape (non-empty string) -->
     <div v-if="tape.length > 0" class="tape-row">
       <span class="tape-label">Tape:</span>
       <div class="tape">
@@ -465,6 +492,12 @@ onUnmounted(() => clearInterval(autoTimer.value))
           :class="['tape-cell', cell.status]"
         >{{ cell.ch }}</span>
       </div>
+    </div>
+
+    <!-- Tape (empty string) -->
+    <div v-if="simResult && testString === ''" class="tape-row">
+      <span class="tape-label">Tape:</span>
+      <span class="tape-empty">ε (empty string)</span>
     </div>
 
     <!-- Current state indicator -->
@@ -478,35 +511,80 @@ onUnmounted(() => clearInterval(autoTimer.value))
       </span>
     </div>
 
+    <!-- Controls: Auto | Step Mode | Next | Back -->
+    <div class="sim-controls">
+      <button class="ctrl-btn auto-btn" :disabled="isRunning" @click="runAuto">
+        ▶ Auto
+      </button>
+      <button class="ctrl-btn step-btn" :disabled="isRunning" @click="startStepMode">
+        ⏮ Step Mode
+      </button>
+      <button class="ctrl-btn next-btn" :disabled="!stepMode || done" @click="doNext">
+        ⏭ Next
+      </button>
+      <button class="ctrl-btn back-btn" :disabled="!stepMode || stepIndex === 0" @click="doBack">
+        ◀ Back
+      </button>
+    </div>
+
     <!-- Result banner -->
     <transition name="pop">
       <div v-if="done" :class="['banner', resultAccepted ? 'banner-ok' : 'banner-fail']">
-        {{ resultAccepted ? 'String Accepted' : 'String Rejected' }}
+        {{ resultAccepted ? '✓ String Accepted' : '✗ String Rejected' }}
       </div>
     </transition>
 
-    <!-- Controls -->
-    <div class="btn-row">
-      <button @click="goNext"  :disabled="done || isRunning" class="btn btn-next">⏭ Next</button>
-      <button @click="runAuto" :disabled="done || isRunning" class="btn btn-auto">⚡ Auto</button>
-      <button @click="doReset" class="btn btn-reset">🔄 Reset</button>
-    </div>
-
-    <!-- SVG diagram -->
     <svg ref="svgRef"></svg>
 
-    <!-- Breadcrumb trace -->
-    <div v-if="simResult" class="trace-log">
-      <div
-        v-for="(step, i) in steps.slice(0, stepIndex + 1)"
-        :key="i"
-        :class="['trace-row', i === stepIndex ? 'trace-current' : '']"
-      >
-        <span class="t-step">Step {{ i }}</span>
-        <span class="t-char">{{ i === 0 ? '(initial)' : `read '${step.char}'` }}</span>
-        <span :class="['t-state', step.dead ? 't-dead' : '']">→ {{ step.state ?? 'DEAD' }}</span>
+    <!-- Computation State table -->
+    <div v-if="computationLog.length > 0" class="comp-panel">
+      <div class="comp-panel-header">
+        <span>Computation State</span>
+        <span class="comp-step-count">
+          Step {{ Math.max(0, computationLog.length - 1) }} / {{ simResult ? simResult.steps.length - 1 : 0 }}
+        </span>
+      </div>
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead>
+            <tr><th>#</th><th>From</th><th>Read</th><th>To</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(entry, i) in computationLog"
+              :key="i"
+              :class="['comp-row',
+                i === computationLog.length - 1 ? 'comp-row-current' : '',
+                entry.dead ? 'comp-row-dead' : ''
+              ]"
+            >
+              <td class="comp-step">{{ entry.step }}</td>
+              <td class="comp-state">{{ entry.from }}</td>
+              <td class="comp-char">
+                <span v-if="entry.char === 'start'" class="comp-char-start">start</span>
+                <strong v-else>{{ entry.char }}</strong>
+              </td>
+              <td>
+                <span :class="['comp-to', entry.dead ? 'comp-to-dead' : '']">{{ entry.to }}</span>
+              </td>
+              <td>
+                <span v-if="entry.dead"
+                      class="comp-badge comp-badge-dead">Dead</span>
+                <span v-else-if="i === computationLog.length - 1 && done"
+                      :class="['comp-badge', resultAccepted ? 'comp-badge-ok' : 'comp-badge-fail']">
+                  {{ resultAccepted ? 'Accept' : 'Reject' }}
+                </span>
+                <span v-else-if="i === 0"
+                      class="comp-badge comp-badge-init">Init</span>
+                <span v-else
+                      class="comp-badge comp-badge-step">→</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -524,29 +602,15 @@ onUnmounted(() => clearInterval(autoTimer.value))
 
 h3 { margin: 0; color: #222; font-size: 1.1rem; }
 
-/* Input */
-.input-row { display: flex; gap: 8px; width: 100%; max-width: 480px; }
-.input-field {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.input-field:focus { border-color: #2196f3; }
-
 /* Tape */
-.tape-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tape-row   { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .tape-label { font-size: 0.85rem; font-weight: bold; color: #555; }
-.tape { display: flex; gap: 3px; flex-wrap: wrap; }
-.tape-cell {
+.tape-empty { font-size: 0.85rem; color: #888; font-style: italic; }
+.tape       { display: flex; gap: 3px; flex-wrap: wrap; }
+.tape-cell  {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px;
-  border: 2px solid #bbb; border-radius: 5px;
-  font-size: 1rem; font-weight: bold;
-  transition: all 0.25s;
+  width: 32px; height: 32px; border: 2px solid #bbb; border-radius: 5px;
+  font-size: 1rem; font-weight: bold; transition: all 0.25s;
   background: #f9f9f9; color: #999;
 }
 .tape-cell.done    { background: #c8e6c9; border-color: #4caf50; color: #1b5e20; }
@@ -554,8 +618,8 @@ h3 { margin: 0; color: #222; font-size: 1.1rem; }
 .tape-cell.pending { background: #f5f5f5; color: #bbb; }
 
 /* State row */
-.state-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.label { font-size: 0.85rem; font-weight: bold; color: #555; }
+.state-row  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.label      { font-size: 0.85rem; font-weight: bold; color: #555; }
 .badge-state { padding: 4px 14px; border-radius: 20px; font-weight: bold; font-size: 0.88rem; border: 2px solid transparent; transition: all 0.3s; }
 .badge-state.active { background: #e3f2fd; color: #1565c0; border-color: #2196f3; }
 .badge-state.ok     { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
@@ -563,40 +627,9 @@ h3 { margin: 0; color: #222; font-size: 1.1rem; }
 .badge-char { font-size: 0.85rem; color: #555; background: #fff8e1; padding: 3px 10px; border-radius: 12px; border: 1px solid #ffe082; }
 
 /* Banner */
-.banner { padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: bold; text-align: center; border: 2px solid transparent; }
+.banner      { padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: bold; text-align: center; border: 2px solid transparent; }
 .banner-ok   { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
 .banner-fail { background: #ffebee; color: #c62828; border-color: #ef5350; }
-
-/* Buttons */
-.btn-row { display: flex; gap: 8px; width: 100%; max-width: 360px; }
-.btn {
-  flex: 1; padding: 9px 0;
-  font-size: 0.92rem; font-weight: bold;
-  border: none; border-radius: 8px; cursor: pointer;
-  transition: filter 0.2s, opacity 0.2s;
-}
-.btn:disabled { opacity: 0.38; cursor: not-allowed; }
-.btn:not(:disabled):hover { filter: brightness(0.9); }
-.btn-next  { background: #1976d2; color: #fff; }
-.btn-auto  { background: #388e3c; color: #fff; }
-.btn-reset { background: #e0e0e0; color: #333; }
-
-/* Trace log */
-.trace-log {
-  width: 100%; max-width: 480px;
-  max-height: 150px; overflow-y: auto;
-  border: 1px solid #e0e0e0; border-radius: 8px;
-  padding: 6px 10px; background: #fafafa;
-  display: flex; flex-direction: column; gap: 2px;
-}
-.trace-row { display: flex; gap: 12px; font-size: 0.8rem; padding: 3px 6px; border-radius: 4px; }
-.trace-current { background: #fff9c4; font-weight: bold; }
-.t-step  { color: #aaa; min-width: 50px; }
-.t-char  { color: #555; min-width: 80px; }
-.t-state { color: #1565c0; }
-.t-dead  { color: #c62828 !important; }
-
-/* Banner animation */
 .pop-enter-active { animation: popIn 0.3s ease; }
 .pop-leave-active { transition: opacity 0.2s; }
 .pop-leave-to     { opacity: 0; }
@@ -604,4 +637,57 @@ h3 { margin: 0; color: #222; font-size: 1.1rem; }
   from { transform: scale(0.88); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
+
+/* Controls */
+.sim-controls {
+  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.4rem;
+}
+.ctrl-btn {
+  padding: 6px 16px; border: none; border-radius: 6px;
+  font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.ctrl-btn:disabled           { opacity: 0.4; cursor: not-allowed; }
+.ctrl-btn:not(:disabled):hover { transform: translateY(-1px); }
+.auto-btn  { background: #2196f3; color: #fff; }
+.step-btn  { background: #ff9800; color: #fff; }
+.next-btn  { background: #4caf50; color: #fff; }
+.back-btn  { background: #9c27b0; color: #fff; }
+
+/* Computation panel */
+.comp-panel {
+  width: 100%; max-width: 560px; border: 1px solid #ddd;
+  border-radius: 8px; overflow: hidden; margin-top: 0.6rem; font-size: 0.82rem;
+}
+.comp-panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #f5f5f5; padding: 7px 14px; font-weight: 700;
+  font-size: 0.85rem; border-bottom: 1px solid #ddd; color: #333;
+}
+.comp-step-count { font-weight: 400; color: #888; font-size: 0.78rem; }
+.comp-table-wrap { max-height: 220px; overflow-y: auto; }
+.comp-table      { width: 100%; border-collapse: collapse; }
+.comp-table th {
+  padding: 5px 10px; background: #fafafa; border-bottom: 1px solid #eee;
+  text-align: center; color: #666; font-size: 0.75rem; font-weight: 600;
+  position: sticky; top: 0; z-index: 1;
+}
+.comp-table td          { padding: 5px 10px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+.comp-row:last-child td { border-bottom: none; }
+.comp-row-current td    { background: #fff8e1; }
+.comp-row-dead td       { background: #fff0f0; }
+.comp-step       { color: #aaa; font-size: 0.75rem; }
+.comp-state      { font-weight: 700; color: #1565c0; }
+.comp-char       { color: #333; }
+.comp-char-start { font-style: italic; color: #aaa; font-size: 0.75rem; }
+.comp-to         { font-weight: 700; color: #2e7d32; }
+.comp-to-dead    { color: #c62828; }
+.comp-badge {
+  display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;
+}
+.comp-badge-ok   { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.comp-badge-fail { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.comp-badge-dead { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+.comp-badge-init { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+.comp-badge-step { background: #f5f5f5; color: #888; border: 1px solid #ddd; }
 </style>

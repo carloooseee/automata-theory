@@ -27,3 +27,11 @@
 }
 .valid { color: #155724; }
 .invalid { color: #d32f2f; }
+
+.simulate-btn {
+  padding: 0.6rem 0.9rem;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  border: 1px black solid;
+  cursor: pointer;
+}
