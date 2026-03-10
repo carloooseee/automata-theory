@@ -79,7 +79,7 @@ const DFA_CONFIGS = {
     links: [
       { source: 'p0', target: 'p1', label: '0' },
       { source: 'p0', target: 'p2', label: '1' },
-      { source: 'p1', target: 'p5', label: '0' },
+      { source: 'p1', target: 'p5', label: '0' , curve:2, sweep: 0},
       { source: 'p1', target: 'p3', label: '1' },
       { source: 'p2', target: 'p4', label: '0' },
       { source: 'p2', target: 'p5', label: '1' },
