@@ -21,9 +21,10 @@ const inputResults = computed(() => {
     try {
         const jsRegexStr = '^' + props.regexStr.split('+').join('|') + '$'
         const regex = new RegExp(jsRegexStr)
-        
+
         return userInputs.value.map(val => {
-            if (!val) return null
+            // Empty string is a valid input to test — don't return null
+            if (val === null || val === undefined) return null
             return regex.test(val) ? 'Valid' : 'Invalid'
         })
     } catch (e) {
@@ -37,18 +38,19 @@ const inputResults = computed(() => {
   <div class="input-area-container">
     <div class="inputs-area">
       <div v-for="(inp, idx) in userInputs" :key="idx" class="input-row">
-        <input 
-          v-model="userInputs[idx]" 
-          :placeholder="`Input ${idx + 1}`" 
+        <input
+          v-model="userInputs[idx]"
+          :placeholder="`Input ${idx + 1}`"
         />
-        <span 
-          v-if="inputResults[idx] !== null" 
+        <!-- Show result badge whenever there's a result (including empty string) -->
+        <span
+          v-if="inputResults[idx] !== null"
           :class="['result', inputResults[idx] === 'Valid' ? 'valid' : 'invalid']"
         >
           {{ inputResults[idx] }}
         </span>
+        <!-- Simulate button always visible for every row -->
         <button
-          v-if="inputResults[idx] === 'Valid' || inputResults[idx] === 'Invalid'"
           @click="$emit('simulate-string', userInputs[idx])"
           class="simulate-btn"
         >
