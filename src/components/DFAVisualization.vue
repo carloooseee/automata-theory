@@ -314,8 +314,10 @@ const renderDFA = () => {
 
     const label = svg.append("g").selectAll("text")
         .data(data.nodes).join("text").text(d => d.label)
-        .attr("dy", 5).attr("text-anchor", "middle")
-        .attr("font-size", "12px").attr("pointer-events", "none")
+        .attr("dy", d => (d.label === '-' || d.label === '+') ? 8 : 5)
+        .attr("text-anchor", "middle")
+        .attr("font-size", d => (d.label === '-' || d.label === '+') ? "24px" : "12px")
+        .attr("pointer-events", "none")
         .attr("fill", "white").attr("font-weight", "bold");
 
     simulation.tick(300);
