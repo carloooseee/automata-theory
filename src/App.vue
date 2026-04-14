@@ -6,6 +6,7 @@ import NavBar from './components/NavBar.vue'
 import SelectSimulation from './components/SelectSimulation.vue'
 import Diagram from './components/DFAVisualization.vue'
 import PDAVisualization from './components/PDAVisualization.vue'
+import CFGVisualization from './components/CFGVisualization.vue'
 
 const currentView = ref('regex')
 const activeAutomata = ref('dfa')
@@ -80,11 +81,11 @@ const runSimulation = (str) => {
            <Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" :simKey="simulationKey" />
         </div>
         <div v-else-if="activeAutomata === 'cfg'">
-           <h2>CFG</h2>
-           <p>CFG Visualization coming soon...</p>
+           <CFGVisualization :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" />
         </div>
         <div v-else-if="activeAutomata === 'pda'">
-           <PDAVisualization :problemId="problems[selectedProblemIndex].id" />
+           <h2>PDA</h2>
+           <p>PDA Visualization coming soon...</p>
         </div>
       </div>
     </div>
