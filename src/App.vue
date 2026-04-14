@@ -8,6 +8,7 @@ import Diagram from './components/DFAVisualization.vue'
 import PDAVisualization from './components/PDAVisualization.vue'
 
 const currentView = ref('regex')
+const activeAutomata = ref('dfa')
 const simulationInputs = ref([])
 
 const automata = ref('automata-theory project')
@@ -67,28 +68,28 @@ const runSimulation = (str) => {
         </div>
       </div>
       <!-- <div class="section"><SelectSimulation :inputs="simulationInputs" @start-simulation="runSimulation" /></div> WAG MUNA TO GALAWIN-->
-      <div class="section"><Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" :simKey="simulationKey" /></div>
+      
+      <div class="visualization-controls">
+        <button @click="activeAutomata = 'dfa'">DFA</button>
+        <button @click="activeAutomata = 'cfg'">CFG</button>
+        <button @click="activeAutomata = 'pda'">PDA</button>
+      </div>
+
+      <div class="section">
+        <div v-if="activeAutomata === 'dfa'">
+           <Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" :simKey="simulationKey" />
+        </div>
+        <div v-else-if="activeAutomata === 'cfg'">
+           <h2>CFG</h2>
+           <p>CFG Visualization coming soon...</p>
+        </div>
+        <div v-else-if="activeAutomata === 'pda'">
+           <PDAVisualization :problemId="problems[selectedProblemIndex].id" />
+        </div>
+      </div>
     </div>
   </div>
 
-  <div v-else-if="currentView === 'cfgpda'">
-    <h1 class="main-title">{{ automata }}</h1>
-    <p class="main-title">Interactive Pushdown Automata Simulator</p>
-    
-    <!-- <div class="simulation-controls">
-        <SelectSimulation :inputs="simulationInputs" /> Wag muna to galawin guys! finollow k muna ung intended design ni mam
-    </div> -->
-
-    <div class="split-container">
-        <div class="cfg-section">
-            <h2>CFG</h2>
-            <!-- CFG Visualization will go here -->
-        </div>
-        <div class="pda-section">
-            <PDAVisualization :problemId="problems[selectedProblemIndex].id" />
-        </div>
-    </div>
-  </div>
 
   <div v-else-if="currentView === 'manual'">
     <h1>User Manual</h1>
@@ -99,24 +100,22 @@ const runSimulation = (str) => {
 </template>
 
 <style scoped>
-.split-container {
+.single-section {
+    border: 1px solid #000000;
+    padding: 20px;
+    background: #fff;
+}
+
+.visualization-controls {
     display: flex;
-    flex-direction: row;
-    width: 100%;
-    gap: 20px;
+    justify-content: center;
+    gap: 10px;
     margin-top: 20px;
 }
 
-.cfg-section, .pda-section {
-    flex: 1;
-    border: 1px solid #000000;
-    padding: 20px;
-}
-
-.simulation-controls {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
+.visualization-controls button {
+    padding: 8px 16px;
+    cursor: pointer;
 }
 </style>
 

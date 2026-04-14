@@ -4,8 +4,7 @@ defineEmits(['change-view'])
 
 <template>
   <nav class="navbar">
-    <button @click="$emit('change-view', 'regex')">RegEx</button>
-    <button @click="$emit('change-view', 'cfgpda')">CFG & PDA</button>
+    <button @click="$emit('change-view', 'regex')">Automata Simulator</button>
     <button @click="$emit('change-view', 'manual')">User Manual</button>
   </nav>
 </template>

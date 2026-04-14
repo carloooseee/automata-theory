@@ -21,7 +21,7 @@ const generatePDA = (problemId) => {
     ];
 
     const transitions = [
-        { source: 'git ', target: 'q1', label: 'ε, ε -> $' },
+        { source: 'start', target: 'q1', label: 'ε, ε -> $' },
         { source: 'q1', target: 'q1', label: 'a, ε -> A' },
         { source: 'q1', target: 'q2', label: 'b, A -> ε' },
         { source: 'q2', target: 'q2', label: 'b, A -> ε' },
