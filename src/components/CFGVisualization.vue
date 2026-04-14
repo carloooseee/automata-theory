@@ -288,10 +288,10 @@ onMounted(() => {
     </div>
     
     <!-- Derivation Tree -->
-    <div class="tree-section">
+    <!-- <div class="tree-section">
         <h4>Derivation Tree:</h4>
         <svg ref="svgRef"></svg>
-    </div>
+    </div> -->
     
     <!-- Legend -->
     <div class="legend">

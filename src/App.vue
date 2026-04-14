@@ -84,8 +84,7 @@ const runSimulation = (str) => {
            <CFGVisualization :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" />
         </div>
         <div v-else-if="activeAutomata === 'pda'">
-           <h2>PDA</h2>
-           <p>PDA Visualization coming soon...</p>
+           <PDAVisualization :problemId="problems[selectedProblemIndex].id" />
         </div>
       </div>
     </div>
