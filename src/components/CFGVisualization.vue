@@ -9,53 +9,32 @@ const props = defineProps({
 
 const svgRef = ref(null)
 
-// CFG data for each problem
+// CFG data — each production groups all alternatives: { lhs, alts: [...] }
 const CFG_DATA = {
     1: {
         startSymbol: 'S',
         productions: [
-            { lhs: 'S', rhs: ['A', 'B', 'C', 'D', 'E', 'F'] },
-            { lhs: 'A', rhs: ['b'] },
-            { lhs: 'A', rhs: ['a', 'a'] },
-            { lhs: 'A', rhs: ['a', 'b'] },
-            { lhs: 'B', rhs: ['a'] },
-            { lhs: 'B', rhs: ['b'] },
-            { lhs: 'C', rhs: ['b', 'b'] },
-            { lhs: 'C', rhs: ['a', 'b', 'a'] },
-            { lhs: 'C', rhs: ['a', 'b'] },
-            { lhs: 'D', rhs: ['a', 'a', 'a'] },
-            { lhs: 'D', rhs: ['b', 'b', 'b'] },
-            { lhs: 'E', rhs: ['a'] },
-            { lhs: 'E', rhs: ['b'] },
-            { lhs: 'F', rhs: ['a'] },
-            { lhs: 'F', rhs: ['b'] },
-            { lhs: 'F', rhs: ['a', 'b'] }
+            { lhs: 'S', alts: ['ABCDEF'] },
+            { lhs: 'A', alts: ['b', 'aa', 'ab'] },
+            { lhs: 'B', alts: ['ε', 'aB', 'bB'] },
+            { lhs: 'C', alts: ['ε', 'bbC', 'abaC', 'abC'] },
+            { lhs: 'D', alts: ['aaa', 'bbb'] },
+            { lhs: 'E', alts: ['a', 'b'] },
+            { lhs: 'F', alts: ['ε', 'aF', 'bF'] },
         ],
-        terminals: ['a', 'b'],
+        terminals: ['a', 'b', 'ε'],
         nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E', 'F']
     },
     2: {
         startSymbol: 'S',
         productions: [
-            { lhs: 'S', rhs: ['A', 'B', 'C', 'D', 'E', 'F'] },
-            { lhs: 'A', rhs: ['0'] },
-            { lhs: 'A', rhs: ['1'] },
-            { lhs: 'B', rhs: ['1', '1'] },
-            { lhs: 'B', rhs: ['0', '0'] },
-            { lhs: 'B', rhs: ['1', '0', '1'] },
-            { lhs: 'B', rhs: ['0', '1', '0'] },
-            { lhs: 'C', rhs: ['0'] },
-            { lhs: 'C', rhs: ['1'] },
-            { lhs: 'C', rhs: ['1', '1'] },
-            { lhs: 'C', rhs: ['0', '0'] },
-            { lhs: 'C', rhs: ['1', '0', '1'] },
-            { lhs: 'D', rhs: ['1', '1'] },
-            { lhs: 'D', rhs: ['0', '0'] },
-            { lhs: 'E', rhs: ['0'] },
-            { lhs: 'E', rhs: ['1'] },
-            { lhs: 'F', rhs: ['0'] },
-            { lhs: 'F', rhs: ['1'] },
-            { lhs: 'F', rhs: ['1', '1'] }
+            { lhs: 'S', alts: ['ABCDEF'] },
+            { lhs: 'A', alts: ['0', '1'] },
+            { lhs: 'B', alts: ['11', '00', '101', '010'] },
+            { lhs: 'C', alts: ['0', '1', '11', '00', '101'] },
+            { lhs: 'D', alts: ['11', '00'] },
+            { lhs: 'E', alts: ['0', '1'] },
+            { lhs: 'F', alts: ['0', '1', '11'] },
         ],
         terminals: ['0', '1'],
         nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E', 'F']
@@ -282,7 +261,7 @@ onMounted(() => {
             <div v-for="(prod, idx) in cfg.productions" :key="idx" class="production-rule">
                 <span class="lhs">{{ prod.lhs }}</span>
                 <span class="arrow">→</span>
-                <span class="rhs">{{ prod.rhs.join(' ') }}</span>
+                <span class="rhs">{{ prod.alts.join(' | ') }}</span>
             </div>
         </div>
     </div>
