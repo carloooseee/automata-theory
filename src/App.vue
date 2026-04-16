@@ -7,6 +7,7 @@ import SelectSimulation from './components/SelectSimulation.vue'
 import Diagram from './components/DFAVisualization.vue'
 import PDAVisualization from './components/PDAVisualization.vue'
 import CFGVisualization from './components/CFGVisualization.vue'
+import UserManual from './components/UserManual.vue'
 
 const currentView = ref('regex')
 const activeAutomata = ref('dfa')
@@ -92,9 +93,7 @@ const runSimulation = (str) => {
 
 
   <div v-else-if="currentView === 'manual'">
-    <h1>User Manual</h1>
-    <p>kahit link nlang pala dito</p>
-    <a href="https://docs.google.com/document/d/1ny4ccAVK-HR_crp0zBQ0JsBoIXSl3KXw1x4W2Kmc4O8/edit?usp=sharing">https://docs.google.com/document/d/1ny4ccAVK-HR_crp0zBQ0JsBoIXSl3KXw1x4W2Kmc4O8/edit?usp=sharing</a>
+    <UserManual />
   </div>
 
 </template>
