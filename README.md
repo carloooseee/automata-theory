@@ -1,6 +1,6 @@
 # automata-theory
 
-![Nier Automata GIF](https://fightersgeneration.com/news2023/char3/2b-nier-automata-anime-gif.gif)
+![Nier Automata GIF](./public/2b-nier-automata.gif)
 
 This template should help get you started developing with Vue 3 in Vite.
 
