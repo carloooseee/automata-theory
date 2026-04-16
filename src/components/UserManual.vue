@@ -1,39 +1,68 @@
 <script setup>
-// Minimalist User Manual component
+// Minimalist User Manual with provided content
 </script>
 
 <template>
   <div class="manual-plain">
-    <h1>Automata Simulator - User Manual</h1>
+    <h1>User Manual: Automata Simulator</h1>
     
     <section>
-      <h2>Developers</h2>
+      <h2>INTRODUCTION</h2>
+      <p>The Automata Simulator is a comprehensive educational tool designed to bridge the gap between theoretical computation and visual representation. It allows users to input regular expressions and observe how they translate into various mathematical models, including Deterministic Finite Automata (DFA), Context-Free Grammars (CFG), and Pushdown Automata (PDA).</p>
+    </section>
+
+    <section>
+      <h2>GETTING STARTED</h2>
+      <h3>System Requirements</h3>
+      <p>As a web-based application, the simulator runs on any modern browser (Chrome, Firefox, or Edge). It is optimized for desktop use to provide the best experience for complex flowchart visualizations.</p>
+      
+      <h3>Initial Setup</h3>
       <ul>
-        <li>Laran, Juan Carlos (Leader)</li>
-        <li>Melindo, Angel Vhea</li>
-        <li>Leovonchiong, Lorenz Liu</li>
-        <li>Malla, Marielle Joy</li>
+        <li><strong>Selection:</strong> Upon launching the application, locate the sidebar or dropdown menu containing a list of predefined Regular Expression problems.</li>
+        <li><strong>Input Testing:</strong> Enter a string (e.g., abbaba) into the designated test field to verify if it belongs to the language defined by the regex.</li>
+        <li><strong>Execution:</strong> Click the Simulate button. The system will process the logic and generate the corresponding visualization.</li>
       </ul>
     </section>
 
     <section>
-      <h2>Getting Started</h2>
-      <p>1. Select a problem from the list of regular expressions.</p>
-      <p>2. Enter strings in the input fields to test them against the selected regex.</p>
-      <p>3. Use the "Simulate" button to run the visualization.</p>
-      <p>4. Switch between DFA, CFG, and PDA views to see different representations.</p>
+      <h2>CORE FEATURES & MODULES</h2>
+      
+      <h3>Deterministic Finite Automata Visualization</h3>
+      <p>The DFA module converts the selected regular expression into a state-transition diagram.</p>
+      <ul>
+        <li><strong>States:</strong> Represented by circles. The start state is indicated by an arrow, and accepting states are denoted by double circles.</li>
+        <li><strong>Transitions:</strong> Labeled arrows showing the movement between states based on specific input symbols.</li>
+        <li><strong>Interactive Playback:</strong> You can step through the simulation to see the current state highlighted in real-time as the input string is processed.</li>
+      </ul>
+
+      <h3>Context-Free Grammar Visualization</h3>
+      <p>This module breaks down the language into formal production rules.</p>
+      <ul>
+        <li><strong>Production Rules:</strong> Displays the variables (non-terminals), terminals, and the derivation steps.</li>
+        <li><strong>Structure:</strong> Useful for understanding how strings are "built" from the start symbol according to the grammar's logic.</li>
+      </ul>
+
+      <h3>Pushdown Automata Visualization</h3>
+      <p>The PDA module introduces the concept of memory using a stack.</p>
+      <ul>
+        <li><strong>Flowchart View:</strong> Visualizes the logic including the Read, Pop, and Push operations.</li>
+        <li><strong>Stack Representation:</strong> A dynamic visual of the stack data structure, showing how symbols are added or removed during the computation process.</li>
+      </ul>
     </section>
 
     <section>
-      <h2>Features</h2>
-      <h3>DFA Visualization</h3>
-      <p>Shows the Deterministic Finite Automata states and transitions for the given regex.</p>
-      
-      <h3>CFG Visualization</h3>
-      <p>Displays the Context-Free Grammar production rules.</p>
-      
-      <h3>PDA Visualization</h3>
-      <p>Shows the Pushdown Automata flowchart including read, pop, and push operations.</p>
+      <h2>TROUBLESHOOTING & FAQ</h2>
+      <ul>
+        <li><strong>Simulation is slow:</strong> For very complex regular expressions, the DFA generation might take a few seconds. Ensure your browser is up to date.</li>
+        <li><strong>String Rejected:</strong> If the simulator shows "Rejected," the input string does not satisfy the rules of the selected Regular Expression. Double-check the transition diagram to see where the string fails.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>PROJECT DETAILS</h2>
+      <p><strong>Purpose:</strong> Created for academic purposes for the S-CSPC327 - Theory of Automata and Formal Languages course.</p>
+      <p><strong>Development Team:</strong> Laran, Juan Carlos (Lead Developer), Melindo, Angel Vhea, Leovonchiong, Lorenz Liu, and Malla, Marielle Joy (Developers).</p>
+      <p><strong>Technology Stack:</strong> Framework: Vue.js; Visualization: D3.js; Version Control: Git / GitHub.</p>
     </section>
 
     <hr />
@@ -45,33 +74,58 @@
 .manual-plain {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 20px;
   color: #000;
   background: #fff;
-  font-family: serif; /* Using a simple serif font for a "text-only" feel */
-  line-height: 1.5;
+  font-family: serif;
+  line-height: 1.6;
 }
 
-h1, h2, h3 {
-  color: #000;
+h1 {
+  text-align: center;
+  text-transform: uppercase;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 40px;
+}
+
+h2 {
+  text-transform: uppercase;
   border-bottom: 1px solid #000;
   padding-bottom: 5px;
+  margin-top: 30px;
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+  margin-top: 20px;
+  text-decoration: underline;
 }
 
 section {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
 ul {
-  list-style-type: square;
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 10px;
 }
 
 p {
-  margin: 10px 0;
+  margin: 15px 0;
 }
 
 hr {
   border: none;
   border-top: 1px solid #000;
+  margin-top: 60px;
+}
+
+strong {
+  font-weight: bold;
 }
 </style>
