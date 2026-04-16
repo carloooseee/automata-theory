@@ -474,6 +474,14 @@ onUnmounted(() => {
     padding: 1rem;
     font-family: 'Segoe UI', sans-serif;
     overflow-x: auto;
+    
+    /* Hide scrollbar while keeping functionality */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.dfa-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 h3 { margin: 0; color: #222; font-size: 1.1rem; }

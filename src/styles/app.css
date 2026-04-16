@@ -37,3 +37,34 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
 }
+
+/* Hide horizontal scrollbar globally while keeping functionality */
+* {
+    scrollbar-width: thin; /* For Firefox vertical scrollbar */
+}
+
+/* Specific for horizontal scrollbar hiding */
+.no-scrollbar-x {
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.no-scrollbar-x::-webkit-scrollbar {
+    display: none;
+}
+
+/* Applying to common containers that might overflow horizontally */
+.dfa-container, .cfg-container, .pda-wrap, .manual-plain, .sections-container {
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.dfa-container::-webkit-scrollbar, 
+.cfg-container::-webkit-scrollbar, 
+.pda-wrap::-webkit-scrollbar, 
+.manual-plain::-webkit-scrollbar,
+.sections-container::-webkit-scrollbar {
+    display: none;
+}
