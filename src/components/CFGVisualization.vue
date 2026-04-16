@@ -41,7 +41,13 @@ const CFG_DATA = {
     }
 }
 
+const REGEX_MAP = {
+  1: '(b+aa+ab)(a+b)*(bb+aba+ab)*(aaa+bbb)(a+b)(a+b+ab)*',
+  2: '(1+0)*(11+00+101+010)(1+0+11+00+101)*(11+00)(11+00+101)*(1+0)(1+0+11)*'
+}
+
 const cfg = computed(() => CFG_DATA[props.problemId] || CFG_DATA[1])
+const problemRegex = computed(() => REGEX_MAP[props.problemId])
 
 // Generate a simple derivation tree structure
 const generateDerivationTree = (inputStr, cfgData) => {
@@ -253,6 +259,7 @@ onMounted(() => {
 <template>
   <div class="cfg-container">
     <h3>CFG Visualization (Problem {{ problemId }})</h3>
+    <p v-if="problemRegex" class="regex-display"><code>{{ problemRegex }}</code></p>
     
     <!-- Production Rules -->
     <div class="grammar-rules">
@@ -299,6 +306,20 @@ onMounted(() => {
 h3 {
     margin: 0;
     color: #222;
+    font-size: 1.1rem;
+}
+
+.regex-display {
+    margin: 0;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.regex-display code {
+    font-family: monospace;
+    color: #0f172a;
     font-size: 1.1rem;
 }
 
