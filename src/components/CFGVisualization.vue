@@ -16,11 +16,11 @@ const CFG_DATA = {
         productions: [
             { lhs: 'S', alts: ['ABCDEF'] },
             { lhs: 'A', alts: ['b', 'aa', 'ab'] },
-            { lhs: 'B', alts: ['ε', 'aB', 'bB'] },
-            { lhs: 'C', alts: ['ε', 'bbC', 'abaC', 'abC'] },
+            { lhs: 'B', alts: ['λ', 'aB', 'bB'] },
+            { lhs: 'C', alts: ['λ', 'bbC', 'abaC', 'abC'] },
             { lhs: 'D', alts: ['aaa', 'bbb'] },
             { lhs: 'E', alts: ['a', 'b'] },
-            { lhs: 'F', alts: ['ε', 'aF', 'bF'] },
+            { lhs: 'F', alts: ['λ', 'aF', 'bF'] },
         ],
         terminals: ['a', 'b', 'ε'],
         nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E', 'F']
