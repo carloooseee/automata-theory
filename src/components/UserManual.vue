@@ -77,7 +77,6 @@
   padding: 40px 20px;
   color: #000;
   background: #fff;
-  font-family: serif;
   line-height: 1.6;
 }
 
@@ -94,11 +93,9 @@ h2 {
   border-bottom: 1px solid #000;
   padding-bottom: 5px;
   margin-top: 30px;
-  font-size: 1.5rem;
 }
 
 h3 {
-  font-size: 1.2rem;
   margin-top: 20px;
   text-decoration: underline;
 }

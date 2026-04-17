@@ -21,7 +21,7 @@ const REGEX_MAP = {
     </div>
     
     <div v-else-if="problemId === 2">
-      <p>ANGEL LAGAY MO DITO UNG PICTURE NG PDA 2, MAKE SURE NA WHITE UNG BACKGROUND</p>
+      <p>dito mo lagay angel</p>
     </div>
 
     <p class="assignment-text">Assigned by Carlos (Regex 1) and Angel (Regex 2)</p>
@@ -40,14 +40,12 @@ const REGEX_MAP = {
 .pda-title {
     margin: 0;
     margin-bottom: 0.5rem;
-    font-size: 1.2rem;
     color: #222;
 }
 
 .regex-text {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     margin-bottom: 2rem;
-    font-family: monospace;
     text-align: center;
 }
 
@@ -59,5 +57,6 @@ const REGEX_MAP = {
 .assignment-text {
     margin-top: 2rem;
     color: #666;
+    font-size: 1.1rem;
 }
 </style>

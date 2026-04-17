@@ -298,7 +298,7 @@ const renderDFA = () => {
 
     const linkLabel = svg.append("g").selectAll("text")
         .data(data.links).join("text").text(d => d.label)
-        .attr("font-size", "14px")
+        .attr("font-size", "16px")
         .attr("fill", "#e63946")
         .attr("font-weight", "bold")
         .attr("text-anchor", "middle")
@@ -322,7 +322,7 @@ const renderDFA = () => {
         .data(data.nodes).join("text").text(d => d.label)
         .attr("dy", d => (d.label === '-' || d.label === '+') ? 8 : 5)
         .attr("text-anchor", "middle")
-        .attr("font-size", d => (d.label === '-' || d.label === '+') ? "24px" : "12px")
+        .attr("font-size", d => (d.label === '-' || d.label === '+') ? "28px" : "14px")
         .attr("pointer-events", "none")
         .attr("fill", "white").attr("font-weight", "bold");
 
@@ -472,7 +472,6 @@ onUnmounted(() => {
     align-items: center;
     gap: 0.7rem;
     padding: 1rem;
-    font-family: 'Segoe UI', sans-serif;
     overflow-x: auto;
     
     /* Hide scrollbar while keeping functionality */
@@ -485,18 +484,18 @@ onUnmounted(() => {
 }
 
 h3 { margin: 0; color: #222; font-size: 1.1rem; }
-.regex-display { margin: 0; margin-bottom: 0.5rem; font-size: 0.95rem; color: #ffffff; font-weight: 500;}
+.regex-display { margin: 0; margin-bottom: 0.5rem; font-size: 1.3rem; color: #ffffff; font-weight: 500;}
 .regex-display code { background: #ffffff; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #000000; }
 
 /* Tape */
 .tape-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.tape-label { font-size: 0.85rem; font-weight: bold; color: #555; }
+.tape-label { font-size: 1.3rem; font-weight: bold; color: #555; }
 .tape { display: flex; gap: 3px; flex-wrap: wrap; }
 .tape-cell {
   display: inline-flex; align-items: center; justify-content: center;
   width: 32px; height: 32px;
   border: 2px solid #bbb; border-radius: 5px;
-  font-size: 1rem; font-weight: bold;
+  font-size: 1.1rem; font-weight: bold;
   transition: all 0.25s;
   background: #f9f9f9; color: #999;
 }
@@ -506,12 +505,12 @@ h3 { margin: 0; color: #222; font-size: 1.1rem; }
 
 /* State row */
 .state-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.label { font-size: 0.85rem; font-weight: bold; color: #555; }
-.badge-state { padding: 4px 14px; border-radius: 20px; font-weight: bold; font-size: 0.88rem; border: 2px solid transparent; transition: all 0.3s; }
+.label { font-size: 1.3rem; font-weight: bold; color: #555; }
+.badge-state { padding: 4px 14px; border-radius: 20px; font-weight: bold; font-size: 1rem; border: 2px solid transparent; transition: all 0.3s; }
 .badge-state.active { background: #e3f2fd; color: #1565c0; border-color: #2196f3; }
 .badge-state.ok     { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
 .badge-state.fail   { background: #ffebee; color: #c62828; border-color: #ef5350; }
-.badge-char { font-size: 0.85rem; color: #555; background: #fff8e1; padding: 3px 10px; border-radius: 12px; border: 1px solid #ffe082; }
+.badge-char { font-size: 1rem; color: #555; background: #fff8e1; padding: 3px 10px; border-radius: 12px; border: 1px solid #ffe082; }
 
 /* Banner */
 .banner { padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: bold; text-align: center; border: 2px solid transparent; }

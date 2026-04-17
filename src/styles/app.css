@@ -1,6 +1,12 @@
 body {
   margin: 0;
+  font-size: 1.15rem;
 }
+
+h1 { font-size: 2.2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.3rem; }
 
 .section {
   /* border: 1px solid black; */
@@ -37,13 +43,14 @@ body {
     
 .main-title p {
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: bold;
 }
 
 /* Hide horizontal scrollbar globally while keeping functionality */
 * {
     scrollbar-width: thin; /* For Firefox vertical scrollbar */
+    font-family: monospace !important;
 }
 
 /* Specific for horizontal scrollbar hiding */

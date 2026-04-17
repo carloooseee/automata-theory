@@ -16,6 +16,8 @@
   cursor: pointer;
   word-break: break-all;
   font-family: monospace;
+  font-size: 1.1rem;
+  margin: 0.2rem 0;
 }
 .inputs-area {
   display: flex;

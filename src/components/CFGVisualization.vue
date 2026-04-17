@@ -214,7 +214,7 @@ const renderTree = () => {
     nodes.append("text")
         .attr("dy", 4)
         .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
+        .attr("font-size", "14px")
         .attr("font-weight", "bold")
         .attr("fill", "white")
         .text(d => d.data.name)
@@ -238,7 +238,7 @@ const renderGrammar = () => {
     svg.append("text")
         .attr("x", 50)
         .attr("y", 100)
-        .attr("font-size", "14px")
+        .attr("font-size", "16px")
         .attr("fill", "#666")
         .text("Derivation tree will appear when you test a string")
 }
@@ -301,7 +301,6 @@ onMounted(() => {
     align-items: center;
     gap: 1rem;
     padding: 0.5rem;
-    font-family: 'Segoe UI', sans-serif;
 }
 
 h3 {
@@ -313,7 +312,7 @@ h3 {
 .regex-display {
     margin: 0;
     margin-bottom: 0.5rem;
-    font-size: 0.95rem;
+    font-size: 1.3rem;
     color: #666;
     font-weight: 500;
 }
@@ -321,13 +320,7 @@ h3 {
 .regex-display code {
     font-family: monospace;
     color: #0f172a;
-    font-size: 1.1rem;
-}
-
-h4 {
-    margin: 0.5rem 0;
-    color: #444;
-    font-size: 0.95rem;
+    font-size: 1.3rem;
 }
 
 .grammar-rules {
@@ -348,7 +341,7 @@ h4 {
 
 .production-rule {
     font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -391,7 +384,7 @@ h4 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
+    font-size: 1.3rem;
     color: #555;
 }
 
