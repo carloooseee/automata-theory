@@ -13,6 +13,7 @@ const REGEX_MAP = {
 
 <template>
   <div class="pda-container">
+    <h3 class="pda-title">PDA Visualization (Problem {{ problemId }})</h3>
     <p class="regex-text">{{ REGEX_MAP[problemId] }}</p>
 
     <div v-if="problemId === 1">
@@ -34,6 +35,13 @@ const REGEX_MAP = {
     flex-direction: column;
     align-items: center;
     padding: 1rem 0;
+}
+
+.pda-title {
+    margin: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    color: #222;
 }
 
 .regex-text {
