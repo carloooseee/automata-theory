@@ -298,6 +298,7 @@ onMounted(() => {
     width: 100%;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 1rem;
     padding: 0.5rem;
     font-family: 'Segoe UI', sans-serif;
@@ -334,6 +335,7 @@ h4 {
     padding: 1rem;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
+    width: fit-content;
 }
 
 .rules-list {
