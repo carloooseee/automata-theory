@@ -26,6 +26,9 @@ body {
   .problem-input-container {
     flex-direction: column;
   }
+  .section h2 {
+    text-align: center;
+  }
 }
 
 .main-title {

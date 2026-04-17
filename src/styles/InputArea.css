@@ -35,3 +35,14 @@
   border: 1px black solid;
   cursor: pointer;
 }
+
+@media (max-width: 768px) {
+  .inputs-area {
+    align-items: center;
+  }
+  .input-row {
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+}
