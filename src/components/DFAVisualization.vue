@@ -483,7 +483,7 @@ onUnmounted(() => {
     display: none; /* Chrome, Safari, Opera */
 }
 
-h3 { margin: 0; color: #222; font-size: 1.1rem; }
+h3 { margin: 0; color: #222 }
 .regex-display { margin: 0; margin-bottom: 0.5rem; font-size: 1.3rem; color: #ffffff; font-weight: 500;}
 .regex-display code { background: #ffffff; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #000000; }
 

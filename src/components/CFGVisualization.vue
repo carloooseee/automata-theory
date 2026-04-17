@@ -306,7 +306,6 @@ onMounted(() => {
 h3 {
     margin: 0;
     color: #222;
-    font-size: 1.1rem;
 }
 
 .regex-display {
