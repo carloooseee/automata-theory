@@ -1,5 +1,6 @@
 <script setup>
 import pdaregex1 from '../assets/pdaregex1.png'
+import pdaregex2 from '@/assets/pdaregex2.png'
 
 defineProps({
     problemId: { type: Number, required: true }
@@ -21,7 +22,7 @@ const REGEX_MAP = {
     </div>
     
     <div v-else-if="problemId === 2">
-      <p>dito mo lagay angel</p>
+      <img :src="pdaregex2" alt="PDA for Regex 2" class="pda-image" />
     </div>
 
     <p class="assignment-text">Assigned by Carlos (Regex 1) and Angel (Regex 2)</p>
