@@ -25,7 +25,9 @@ const inputResults = computed(() => {
         return userInputs.value.map(val => {
             // Empty string is a valid input to test — don't return null
             if (val === null || val === undefined) return null
-            return regex.test(val) ? 'Valid' : 'Invalid'
+            const isValid = regex.test(val)
+            if (!isValid && val === '') return 'null string not accepted'
+            return isValid ? 'Valid' : 'Invalid'
         })
     } catch (e) {
         console.error("Invalid Regex generated:", e)

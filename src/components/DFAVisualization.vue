@@ -130,6 +130,12 @@ const currentCharIdx = computed(() => simResult.value ? (steps.value[stepIndex.v
 
 const resultAccepted = computed(() => done.value && !!simResult.value?.accepted)
 
+const isValidInput = computed(() => {
+    if (props.testString === null || props.testString === undefined) return false;
+    const result = runSimulation(props.testString)
+    return result.accepted
+})
+
 const tape = computed(() => {
   if (!props.testString) return []
   return props.testString.split('').map((ch, i) => {
@@ -220,7 +226,7 @@ const advance = (result, idx) => {
 }
 
 const runAuto = () => {
-  if (!props.testString) return;
+  if (props.testString === null || props.testString === undefined) return;
   doReset();
   const result = initSim()
   isRunning.value = true
@@ -403,7 +409,7 @@ watch(() => props.problemId, () => {
 });
 
 watch(() => props.testString, (newStr) => {
-    if (newStr) {
+    if (newStr !== null && newStr !== undefined) {
         runAuto();
     } else {
         doReset();
@@ -411,7 +417,7 @@ watch(() => props.testString, (newStr) => {
 });
 
 watch(() => props.simKey, () => {
-    if (props.testString) {
+    if (props.testString !== null && props.testString !== undefined) {
         runAuto();
     }
 });
@@ -429,6 +435,10 @@ onUnmounted(() => {
   <div class="dfa-container">
     <h3>DFA Visualization (Problem {{ problemId }})</h3>
     <p v-if="problemRegex" class="regex-display" style="font-size: 1.2rem;"><code>{{ problemRegex }}</code></p>
+    
+    <div v-if="simResult && !isValidInput" class="invalid-warning">
+      <span>⚠️ Invalid String for this Automaton</span>
+    </div>
     
     <!-- Tape -->
     <div v-if="tape.length > 0" class="tape-row">
@@ -456,7 +466,7 @@ onUnmounted(() => {
     <!-- Result banner -->
     <transition name="pop">
       <div v-if="done" :class="['banner', resultAccepted ? 'banner-ok' : 'banner-fail']">
-        {{ resultAccepted ? 'String Accepted' : 'String Rejected' }}
+        {{ (props.testString === '' && !resultAccepted) ? 'null string not accepted' : (resultAccepted ? 'String Accepted' : 'String Rejected') }}
       </div>
     </transition>
 
@@ -486,6 +496,22 @@ onUnmounted(() => {
 h3 { margin: 0; color: #222 }
 .regex-display { margin: 0; margin-bottom: 0.5rem; font-size: 1.3rem; color: #ffffff; font-weight: 500;}
 .regex-display code { background: #ffffff; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #000000; }
+
+.invalid-warning {
+    background: #fff1f2;
+    color: #e11d48;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #fda4af;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 /* Tape */
 .tape-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
