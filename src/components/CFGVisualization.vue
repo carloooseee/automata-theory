@@ -14,17 +14,18 @@ const CFG_DATA = {
     1: {
         startSymbol: 'S',
         productions: [
-            { lhs: 'S', alts: ['ABCDEF'] },
-            { lhs: 'A', alts: ['b', 'aa', 'ab'] },
-            { lhs: 'B', alts: ['λ', 'aB', 'bB'] },
-            { lhs: 'C', alts: ['λ', 'bbC', 'abaC', 'abC'] },
-            { lhs: 'D', alts: ['aaa', 'bbb'] },
-            { lhs: 'E', alts: ['a', 'b'] },
-            { lhs: 'F', alts: ['λ', 'aF', 'bF'] },
+            { lhs: 'S', rhs: ['ABCDEF'] },
+            { lhs: 'A', rhs: ['b', 'aa', 'ab'] },
+            { lhs: 'B', rhs: ['λ', 'aB', 'bB'] },
+            { lhs: 'C', rhs: ['λ', 'bbC', 'abaC', 'abC'] },
+            { lhs: 'D', rhs: ['aaa', 'bbb'] },
+
+
         ],
-        terminals: ['a', 'b', 'ε'],
+        terminals: ['a', 'b', 'λ'],
         nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E', 'F']
     },
+
     2: {
         startSymbol: 'S',
         productions: [
@@ -49,8 +50,103 @@ const REGEX_MAP = {
 const cfg = computed(() => CFG_DATA[props.problemId] || CFG_DATA[1])
 const problemRegex = computed(() => REGEX_MAP[props.problemId])
 
-// Generate a simple derivation tree structure
+// Simulation state (like DFA)
+const stepIndex = ref(0)
+const isRunning = ref(false)
+const done = ref(false)
+const simResult = ref(null)
+const autoTimer = ref(null)
+
+
+// Processed CFG data - normalize to rhs arrays
+const processedCFG = computed(() => {
+  const data = cfg.value
+  return {
+    ...data,
+    productions: data.productions.map(p => ({
+      lhs: p.lhs,
+      rhs: p.rhs || p.alts || []
+    }))
+  }
+})
+
+// CFG Simulation - leftmost derivation with prefix-matching rhs choice
+const runCFGSimulation = (input) => {
+  if (!input || input === '') return { steps: [], accepted: false }
+  
+  const g = processedCFG.value
+  const steps = []
+  
+  // Sentential form as array of symbols
+  let sentential = [g.startSymbol]
+  steps.push({ sentential: [...sentential], usedProd: null, consumed: 0 })
+  
+  let consumed = 0
+  const maxSteps = 50
+  
+  while (steps.length < maxSteps) {
+    // Check done
+    const hasNT = sentential.some(s => g.nonTerminals.includes(s))
+    const terminalsOnly = sentential.filter(s => !g.nonTerminals.includes(s)).join('')
+    if (!hasNT && terminalsOnly === input) {
+      return { steps, accepted: true }
+    }
+    
+    // Leftmost NT
+    const ntIdx = sentential.findIndex(s => g.nonTerminals.includes(s))
+    if (ntIdx === -1) break
+    
+    const lhs = sentential[ntIdx]
+    const prods = g.productions.filter(p => p.lhs === lhs)
+    if (prods.length === 0) break
+    
+    // Choose best rhs: longest prefix match to remaining input, prefer non-ε
+    let bestRhs = null
+    let bestScore = -1
+    for (const p of prods) {
+      for (const rhsStr of p.rhs) {
+        // Extract terminals from rhs (ignore NTs/λ)
+        let rhsTerms = ''
+        for (const sym of rhsStr.split('')) {
+          if (g.terminals.includes(sym)) rhsTerms += sym
+          else if (sym !== 'λ') break // stop at NT
+        }
+        if (rhsTerms.length > bestScore && input.startsWith(rhsTerms, consumed)) {
+          bestScore = rhsTerms.length
+          bestRhs = rhsStr
+        }
+      }
+    }
+    
+    if (bestRhs === null) {
+      // Fallback to ε or first if no match
+      bestRhs = prods[0].rhs.find(r => !r.includes('λ')) || prods[0].rhs[0]
+    }
+    
+    const rhsSymbols = bestRhs.split('')
+    sentential.splice(ntIdx, 1, ...rhsSymbols)
+    
+    // Advance consumed by matched terminals
+    consumed = Math.min(consumed + bestScore, input.length)
+    
+    steps.push({ 
+      sentential: [...sentential], 
+      usedProd: `${lhs} → ${bestRhs}`, 
+      consumed 
+    })
+  }
+  
+  const finalTerminals = sentential.filter(s => !g.nonTerminals.includes(s)).join('')
+  const accepted = finalTerminals === input
+  
+  return { steps, accepted }
+}
+
+
+// Generate a simple derivation tree structure (DEPRECATED - will replace)
 const generateDerivationTree = (inputStr, cfgData) => {
+
+
     if (!inputStr) return null
     
     const symbols = inputStr.split('')
@@ -247,13 +343,63 @@ watch(() => props.problemId, () => {
     renderTree()
 })
 
-watch(() => props.testString, () => {
-    renderTree()
+const steps = computed(() => simResult.value ? simResult.value.steps : [])
+const currentStep = computed(() => steps.value[stepIndex.value] || steps.value[0])
+const resultAccepted = computed(() => done.value && !!simResult.value?.accepted)
+const tape = computed(() => {
+  if (!props.testString || !simResult.value) return []
+  const consumed = currentStep.value?.consumed || 0
+  return props.testString.split('').map((ch, i) => ({
+    ch,
+    status: i < consumed ? 'done' : i === consumed ? 'active' : 'pending'
+  }))
 })
+
+// Auto-run simulation on testString change (like DFA)
+watch(() => props.testString, (newStr) => {
+  if (newStr) {
+    doReset()
+    simResult.value = runCFGSimulation(newStr)
+    if (simResult.value.steps.length > 0) {
+      isRunning.value = true
+      stepIndex.value = 0
+      autoTimer.value = setInterval(() => {
+        if (stepIndex.value >= 10 || simResult.value?.accepted) { // Max 10 steps or accept
+          clearInterval(autoTimer.value)
+          autoTimer.value = null
+          isRunning.value = false
+          done.value = true
+          stepIndex.value = Math.min(stepIndex.value, simResult.value.steps.length - 1)
+          return
+        }
+        stepIndex.value++
+      }, 800)
+    }
+  } else {
+    doReset()
+  }
+  renderTree()
+})
+
+const doReset = () => {
+  clearInterval(autoTimer.value)
+  autoTimer.value = null
+  isRunning.value = false
+  stepIndex.value = 0
+  done.value = false
+  simResult.value = null
+}
+
 
 onMounted(() => {
     renderTree()
 })
+
+import { onUnmounted } from 'vue'
+onUnmounted(() => {
+  if (autoTimer.value) clearInterval(autoTimer.value)
+})
+
 </script>
 
 <template>
@@ -261,15 +407,43 @@ onMounted(() => {
     <h3>CFG Visualization (Problem {{ problemId }})</h3>
     <p v-if="problemRegex" class="regex-display"><code>{{ problemRegex }}</code></p>
     
+    <!-- Tape -->
+    <div v-if="tape.length > 0" class="tape-row">
+      <span class="tape-label">Input Tape:</span>
+      <div class="tape">
+        <span v-for="(cell, i) in tape" :key="i" :class="['tape-cell', cell.status]">
+          {{ cell.ch }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- Current derivation -->
+    <div v-if="currentStep" class="state-row">
+      <span class="label">Derivation:</span>
+      <span class="current-sentential">{{ currentStep.sentential.join(' ') }}</span>
+      <span v-if="currentStep.usedProd" class="badge-prod">
+        Applied: {{ currentStep.usedProd }}
+      </span>
+    </div>
+    
+    <!-- Result banner -->
+    <transition name="pop">
+      <div v-if="done" :class="['banner', resultAccepted ? 'banner-ok' : 'banner-fail']">
+        {{ resultAccepted ? 'String Derived ✓' : 'Not Derived ✗' }}
+      </div>
+    </transition>
+    
     <!-- Production Rules -->
     <div class="grammar-rules">
         <h4>Grammar Rules:</h4>
+
         <div class="rules-list">
-            <div v-for="(prod, idx) in cfg.productions" :key="idx" class="production-rule">
+            <div v-for="(prod, idx) in processedCFG.productions" :key="idx" class="production-rule">
                 <span class="lhs">{{ prod.lhs }}</span>
                 <span class="arrow">→</span>
-                <span class="rhs">{{ prod.alts.join(' | ') }}</span>
+                <span class="rhs">{{ prod.rhs.join(' | ') }}</span>
             </div>
+
         </div>
     </div>
     
@@ -403,4 +577,61 @@ h3 {
 .legend-circle.terminal {
     background: #4caf50;
 }
+
+/* DFA-like styles */
+.tape-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.tape-label { font-size: 1.3rem; font-weight: bold; color: #555; }
+.tape { display: flex; gap: 3px; flex-wrap: wrap; }
+.tape-cell {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border: 2px solid #bbb; border-radius: 5px;
+  font-size: 1.1rem; font-weight: bold;
+  transition: all 0.25s;
+  background: #f9f9f9; color: #999;
+}
+.tape-cell.done    { background: #c8e6c9; border-color: #4caf50; color: #1b5e20; }
+.tape-cell.active  { background: #fff3e0; border-color: #ff9800; color: #e65100; transform: scale(1.15); box-shadow: 0 0 8px #ff980055; }
+.tape-cell.pending { background: #f5f5f5; color: #bbb; }
+
+.state-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.label { font-size: 1.3rem; font-weight: bold; color: #555; }
+.current-sentential {
+  font-family: monospace;
+  background: #f0f8ff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #2196f3;
+  font-size: 1.1rem;
+  max-width: 400px;
+  word-break: break-all;
+}
+.badge-prod {
+  font-size: 1rem;
+  background: #fff3e0;
+  color: #e65100;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #ff9800;
+  font-weight: bold;
+}
+
+.banner {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  border: 2px solid transparent;
+  margin-bottom: 10px;
+}
+.banner-ok { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+.banner-fail { background: #ffebee; color: #c62828; border-color: #ef5350; }
+
+.pop-enter-active { animation: popIn 0.4s ease; }
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
 </style>
+
