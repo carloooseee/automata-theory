@@ -74,7 +74,6 @@
     </section>
 
     <hr />
-    <p>&copy; 2024 Automata Theory Project</p>
   </div>
 </template>
 
