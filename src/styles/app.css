@@ -150,3 +150,113 @@ h4 { font-size: 1.3rem; }
     margin: 10px auto;
   }
 }
+
+/* Dark Mode Styles */
+body.dark-mode {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode p {
+  color: #f1f5f9;
+}
+
+body.dark-mode .main-title p {
+  color: #cbd5e1;
+}
+
+/* Ensure the white cards stay white in dark mode */
+body.dark-mode .dfa-wrap,
+body.dark-mode .cfg-wrap,
+body.dark-mode .pda-wrap {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body.dark-mode .dfa-wrap h2,
+body.dark-mode .cfg-wrap h2,
+body.dark-mode .pda-wrap h2,
+body.dark-mode .dfa-wrap p,
+body.dark-mode .cfg-wrap p,
+body.dark-mode .pda-wrap p {
+  color: #000000;
+}
+
+body.dark-mode .visualization-controls button {
+  background: #334155;
+  color: #cbd5e1;
+  border-color: #475569;
+}
+
+body.dark-mode .visualization-controls button:hover {
+  background: #475569;
+}
+
+body.dark-mode .visualization-controls button.active {
+  background: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+/* --- NavBar Global Dark Mode --- */
+body.dark-mode .navbar {
+  background: #0f172a; 
+  border-bottom-color: #1e293b;
+}
+
+body.dark-mode .nav-title {
+  color: #f8fafc;
+}
+
+body.dark-mode .nav-buttons .btn {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+body.dark-mode .nav-buttons .btn:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+body.dark-mode .nav-buttons .btn.active {
+  background: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+/* --- User Manual Global Dark Mode --- */
+body.dark-mode .manual-plain {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+body.dark-mode .manual-plain h1,
+body.dark-mode .manual-plain h2 {
+  border-bottom-color: #334155;
+  color: #f8fafc;
+}
+
+body.dark-mode .manual-plain h3 {
+  color: #f1f5f9;
+}
+
+body.dark-mode .manual-plain hr {
+  border-top-color: #334155;
+}
+
+body.dark-mode .manual-plain strong {
+  color: #f8fafc;
+}
+
+body.dark-mode .doc-link {
+  color: #60a5fa;
+}
+
+body.dark-mode .doc-link:hover {
+  color: #93c5fd;
+}
