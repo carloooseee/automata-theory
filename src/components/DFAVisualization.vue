@@ -432,122 +432,303 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="dfa-container">
-    <h3>DFA Visualization (Problem {{ problemId }})</h3>
-    <p v-if="problemRegex" class="regex-display" style="font-size: 1.2rem;"><code>{{ problemRegex }}</code></p>
+  <div class="dfa-wrap">
     
+    <!-- Header -->
+    <div class="dfa-header">
+      <div class="header-left">
+        <span class="badge">DFA</span>
+        <span class="title">Problem {{ problemId }}</span>
+      </div>
+      <div class="header-right">
+        <span class="dot start-dot"></span><span class="leg">Start</span>
+        <span class="dot state-dot"></span><span class="leg">State</span>
+        <span class="dot accept-dot"></span><span class="leg">Accept</span>
+      </div>
+    </div>
+
+    <!-- Regex -->
+    <div class="regex-wrap" v-if="problemRegex">
+      <span class="regex-label">Regex</span>
+      <code class="regex-code">{{ problemRegex }}</code>
+    </div>
+
     <div v-if="simResult && !isValidInput" class="invalid-warning">
       <span>⚠️ Invalid String for this Automaton</span>
     </div>
-    
-    <!-- Tape -->
-    <div v-if="tape.length > 0" class="tape-row">
-      <span class="tape-label">Tape:</span>
-      <div class="tape">
-        <span
-          v-for="(cell, i) in tape"
-          :key="i"
-          :class="['tape-cell', cell.status]"
-        >{{ cell.ch }}</span>
+
+    <!-- Simulation Controls Area -->
+    <div class="simulation-status-card">
+      
+      <!-- Tape -->
+      <div v-if="tape.length > 0" class="tape-section">
+        <div class="section-label">Tape</div>
+        <div class="tape-container no-scrollbar-x">
+          <div
+            v-for="(cell, i) in tape"
+            :key="i"
+            :class="['tape-cell', cell.status]"
+          >
+            {{ cell.ch }}
+          </div>
+        </div>
       </div>
+
+      <!-- State & Result -->
+      <div class="status-row">
+        <div class="current-state-box" v-if="simResult && currentState">
+          <span class="label">Current State</span>
+          <div :class="['state-badge', done ? (resultAccepted ? 'ok' : 'fail') : 'active']">
+            {{ currentState }}
+          </div>
+        </div>
+
+        <div class="read-char-box" v-if="currentStep?.char != null">
+          <span class="label">Reading</span>
+          <div class="char-badge">{{ currentStep.char }}</div>
+        </div>
+
+        <div class="result-banner-box">
+          <transition name="pop">
+            <div v-if="done" :class="['banner', resultAccepted ? 'banner-ok' : 'banner-fail']">
+              <span v-if="resultAccepted">✓ String Accepted</span>
+              <span v-else-if="props.testString === ''">✕ null string rejected</span>
+              <span v-else>✕ String Rejected</span>
+            </div>
+          </transition>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Current state indicator -->
-    <div v-if="simResult && currentState" class="state-row">
-      <span class="label">State:</span>
-      <span :class="['badge-state', done ? (resultAccepted ? 'ok' : 'fail') : 'active']">
-        {{ currentState }}
-      </span>
-      <span v-if="currentStep?.char != null" class="badge-char">
-        Read: <strong>{{ currentStep.char }}</strong>
-      </span>
+    <!-- SVG Visualization -->
+    <div class="viz-container">
+      <svg ref="svgRef"></svg>
     </div>
 
-    <!-- Result banner -->
-    <transition name="pop">
-      <div v-if="done" :class="['banner', resultAccepted ? 'banner-ok' : 'banner-fail']">
-        {{ (props.testString === '' && !resultAccepted) ? 'null string not accepted' : (resultAccepted ? 'String Accepted' : 'String Rejected') }}
-      </div>
-    </transition>
-
-    <svg ref="svgRef"></svg>
   </div>
 </template>
 
 <style scoped>
-.dfa-container {
-    width: 100%;
+.dfa-wrap {
     display: flex;
     flex-direction: column;
+    gap: 0.75rem;
+
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 1.2rem;
+
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* Header */
+.dfa-header {
+    display: flex;
     align-items: center;
-    gap: 0.7rem;
-    padding: 1rem;
-    overflow-x: auto;
-    
-    /* Hide scrollbar while keeping functionality */
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.badge {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 5px;
+}
+.title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e1e2e;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.start-dot  { background: #ff9800; }
+.state-dot  { background: #2196f3; margin-left: 0.6rem; }
+.accept-dot { background: #10b981; margin-left: 0.6rem; }
+.leg {
+    font-size: 12px;
+    color: #6b7280;
 }
 
-.dfa-container::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+/* Regex */
+.regex-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+}
+.regex-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-top: 2px;
+    white-space: nowrap;
+}
+.regex-code {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #334155;
+    word-break: break-all;
+    line-height: 1.6;
 }
 
-h3 { margin: 0; color: #222 }
-.regex-display { margin: 0; margin-bottom: 0.5rem; font-size: 1.3rem; color: #ffffff; font-weight: 500;}
-.regex-display code { background: #ffffff; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #000000; }
-
-.invalid-warning {
-    background: #fff1f2;
-    color: #e11d48;
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: 1px solid #fda4af;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    animation: fadeIn 0.3s ease;
+/* Simulation status card */
+.simulation-status-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 4px;
 }
 
 /* Tape */
-.tape-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.tape-label { font-size: 1.3rem; font-weight: bold; color: #555; }
-.tape { display: flex; gap: 3px; flex-wrap: wrap; }
-.tape-cell {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px;
-  border: 2px solid #bbb; border-radius: 5px;
-  font-size: 1.1rem; font-weight: bold;
-  transition: all 0.25s;
-  background: #f9f9f9; color: #999;
+.tape-container {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+    overflow-x: auto;
 }
-.tape-cell.done    { background: #c8e6c9; border-color: #4caf50; color: #1b5e20; }
-.tape-cell.active  { background: #fff3e0; border-color: #ff9800; color: #e65100; transform: scale(1.15); box-shadow: 0 0 8px #ff980055; }
-.tape-cell.pending { background: #f5f5f5; color: #bbb; }
+.tape-cell {
+    min-width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #f8fafc;
+}
+.tape-cell.done {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+.tape-cell.active {
+    background: #fffbeb;
+    color: #d97706;
+    border-color: #fde68a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
 
-/* State row */
-.state-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.label { font-size: 1.3rem; font-weight: bold; color: #555; }
-.badge-state { padding: 4px 14px; border-radius: 20px; font-weight: bold; font-size: 1rem; border: 2px solid transparent; transition: all 0.3s; }
-.badge-state.active { background: #e3f2fd; color: #1565c0; border-color: #2196f3; }
-.badge-state.ok     { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
-.badge-state.fail   { background: #ffebee; color: #c62828; border-color: #ef5350; }
-.badge-char { font-size: 1rem; color: #555; background: #fff8e1; padding: 3px 10px; border-radius: 12px; border: 1px solid #ffe082; }
+/* Status Row */
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
 
-/* Banner */
-.banner { padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: bold; text-align: center; border: 2px solid transparent; }
-.banner-ok   { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
-.banner-fail { background: #ffebee; color: #c62828; border-color: #ef5350; }
+.label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+}
 
-.pop-enter-active { animation: popIn 0.3s ease; }
-.pop-leave-active { transition: opacity 0.2s; }
-.pop-leave-to     { opacity: 0; }
+.state-badge {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 13px;
+    border: 1px solid transparent;
+}
+.state-badge.active { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.state-badge.ok     { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.state-badge.fail   { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+.char-badge {
+    padding: 4px 10px;
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.banner {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+}
+.banner-ok   { background: #16a34a; color: white; }
+.banner-fail { background: #dc2626; color: white; }
+
+/* Viz container */
+.viz-container {
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    background: #fafafa;
+    overflow: hidden;
+}
+
+.invalid-warning {
+    background: #fef2f2;
+    color: #991b1b;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #fee2e2;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.pop-enter-active { animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes popIn {
-  from { transform: scale(0.88); opacity: 0; }
+  from { transform: scale(0.9); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
+
+/* Hide scrollbar */
+.no-scrollbar-x {
+  scrollbar-width: none;
+}
+.no-scrollbar-x::-webkit-scrollbar {
+  display: none;
+}
 </style>
+
