@@ -48,14 +48,27 @@ h4 { font-size: 1.3rem; }
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .problem-input-container {
     flex-direction: column;
+    align-items: center;
+    padding: 0 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .problems-section,
+  .input-section {
+    max-width: 100%;
+    width: 100%;
   }
 
   .section h2 {
     text-align: center;
   }
+  
+  h1 { font-size: 1.8rem; }
+  h2 { font-size: 1.5rem; }
 }
 
 /* Titles */
@@ -67,6 +80,13 @@ h4 { font-size: 1.3rem; }
   text-align: center;
   font-size: 1.6rem;
   font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .main-title p {
+    font-size: 1.2rem;
+    padding: 0 16px;
+  }
 }
 
 /* Global styles */
@@ -87,8 +107,8 @@ h4 { font-size: 1.3rem; }
 }
 
 /* Containers */
-.dfa-container,
-.cfg-container,
+.dfa-wrap,
+.cfg-wrap,
 .pda-wrap,
 .manual-plain,
 .sections-container {
@@ -97,10 +117,34 @@ h4 { font-size: 1.3rem; }
   scrollbar-width: none;
 }
 
-.dfa-container::-webkit-scrollbar,
-.cfg-container::-webkit-scrollbar,
+.dfa-wrap::-webkit-scrollbar,
+.cfg-wrap::-webkit-scrollbar,
 .pda-wrap::-webkit-scrollbar,
 .manual-plain::-webkit-scrollbar,
 .sections-container::-webkit-scrollbar {
   display: none;
+}
+
+/* Center and fit width for visualization cards on mobile */
+@media (max-width: 950px) {
+  .dfa-wrap,
+  .cfg-wrap,
+  .pda-wrap,
+  .manual-plain,
+  .sections-container {
+    width: 95%;
+    max-width: 900px;
+    margin: 20px auto;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 600px) {
+  .dfa-wrap,
+  .cfg-wrap,
+  .pda-wrap {
+    width: 98%;
+    padding: 10px;
+    margin: 10px auto;
+  }
 }

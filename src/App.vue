@@ -145,8 +145,11 @@ const runSimulation = (str) => {
 .visualization-controls {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 12px;
   margin: 30px 0 10px;
+  flex-wrap: wrap;
+  padding: 0 16px;
 }
 
 /* 🔥 Button base */
@@ -161,6 +164,7 @@ const runSimulation = (str) => {
 
   cursor: pointer;
   transition: 0.2s ease;
+  min-width: 80px;
 }
 
 /* Hover */
@@ -174,5 +178,16 @@ const runSimulation = (str) => {
   background: #4CAF50;
   color: white;
   border-color: #4CAF50;
+}
+
+@media (max-width: 480px) {
+  .visualization-controls {
+    gap: 8px;
+  }
+  .visualization-controls button {
+    padding: 6px 14px;
+    font-size: 12px;
+    flex: 1;
+  }
 }
 </style>

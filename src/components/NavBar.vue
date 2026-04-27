@@ -74,6 +74,7 @@ const changeView = (view) => {
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 /* HOVER */
@@ -91,5 +92,27 @@ const changeView = (view) => {
 /* CLICK FEEDBACK */
 .btn:active {
   transform: scale(0.96);
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 20px;
+    text-align: center;
+  }
+
+  .nav-buttons {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 12px;
+    text-align: center;
+  }
 }
 </style>
