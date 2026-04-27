@@ -17,14 +17,22 @@ const selectedProblem = computed({
 <template>
   <div class="problems-container">
     <div class="problem-selector">
-      <label v-for="(prob, index) in problems" :key="prob.id" class="radio-label">
+      <label 
+        v-for="(prob, index) in problems" 
+        :key="prob.id" 
+        class="radio-card"
+      >
         <input 
           type="radio" 
           name="problem" 
           :value="index" 
           v-model="selectedProblem" 
         />
-        {{ prob.label }}
+        <span class="radio-custom"></span>
+
+        <span class="label-text">
+          {{ prob.label }}
+        </span>
       </label>
     </div>
   </div>

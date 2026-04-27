@@ -1,55 +1,81 @@
-/* .problems-container {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-} */
+/* Container */
+.problem-input-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+/* Selector layout */
 .problem-selector {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  text-align: left;
+  gap: 12px;
 }
-.radio-label {
-  cursor: pointer;
-  word-break: break-all;
-  font-family: monospace;
-  font-size: 1.1rem;
-  margin: 0.2rem 0;
-}
-.inputs-area {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-.input-row {
+
+/* Radio card */
+.radio-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-.input-row input {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 250px;
-}
-.result {
-  font-weight: bold;
-}
-.valid { color: #155724; }
-.invalid { color: #d32f2f; }
-.exec-btn {
-  padding: 0.5rem 1.5rem;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+
   cursor: pointer;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  transition: 0.2s ease;
+  background: #fafafa;
 }
-.exec-btn:hover {
-  background-color: #0056b3;
+
+/* Hover effect */
+.radio-card:hover {
+  border-color: #4CAF50;
+  background: #f4fbf6;
+}
+
+/* Hide default radio */
+.radio-card input {
+  display: none;
+}
+
+/* Custom radio circle */
+.radio-custom {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #bbb;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Selected state */
+.radio-card input:checked + .radio-custom {
+  border-color: #4CAF50;
+  background-color: #4CAF50;
+}
+
+/* Inner dot */
+.radio-card input:checked + .radio-custom::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Label text */
+.label-text {
+  font-family: monospace;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+/* Active card highlight */
+.radio-card input:checked ~ .label-text {
+  color: #2e7d32;
+  font-weight: bold;
 }

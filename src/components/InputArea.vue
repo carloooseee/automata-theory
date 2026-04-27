@@ -37,19 +37,27 @@ const inputResults = computed(() => {
 <template>
   <div class="input-area-container">
     <div class="inputs-area">
-      <div v-for="(inp, idx) in userInputs" :key="idx" class="input-row">
+      <div
+        v-for="(inp, idx) in userInputs"
+        :key="idx"
+        class="input-row"
+      >
         <input
           v-model="userInputs[idx]"
           :placeholder="`Input ${idx + 1}`"
+          class="input-field"
         />
-        <!-- Show result badge whenever there's a result (including empty string) -->
+
         <span
           v-if="inputResults[idx] !== null"
-          :class="['result', inputResults[idx] === 'Valid' ? 'valid' : 'invalid']"
+          :class="[
+            'result-badge',
+            inputResults[idx] === 'Valid' ? 'valid' : 'invalid'
+          ]"
         >
           {{ inputResults[idx] }}
         </span>
-        <!-- Simulate button always visible for every row -->
+
         <button
           @click="$emit('simulate-string', userInputs[idx])"
           class="simulate-btn"

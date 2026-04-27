@@ -55,66 +55,124 @@ const runSimulation = (str) => {
   <div v-if="currentView === 'regex'">
     <h1 class="main-title">{{ automata }}</h1>
     <p class="main-title">Interactive Regular Expressions Simulator</p>
+
     <div class="sections-container">
       <div class="problem-input-container">
+
         <div class="section problems-section">
           <h2>Regular Expressions</h2>
-            <Problems 
-                :problems="problems" 
-                v-model="selectedProblemIndex" 
-            />
+          <Problems 
+            :problems="problems" 
+            v-model="selectedProblemIndex" 
+          />
         </div>
+
         <div class="section input-section">
           <h2>Test your Strings</h2>
-          <InputArea :regexStr="currentRegex" @inputs-updated="updateSimulationInputs" @simulate-string="runSimulation" /> <!--Simulation BUTTON-->
+          <InputArea 
+            :regexStr="currentRegex" 
+            @inputs-updated="updateSimulationInputs" 
+            @simulate-string="runSimulation" 
+          />
         </div>
-      </div>
-      <!-- <div class="section"><SelectSimulation :inputs="simulationInputs" @start-simulation="runSimulation" /></div> WAG MUNA TO GALAWIN-->
-      
-      <div class="visualization-controls">
-        <button @click="activeAutomata = 'dfa'">DFA</button>
-        <button @click="activeAutomata = 'cfg'">CFG</button>
-        <button @click="activeAutomata = 'pda'">PDA</button>
+
       </div>
 
+      <!-- Controls -->
+      <div class="visualization-controls">
+        <button 
+          :class="{ active: activeAutomata === 'dfa' }"
+          @click="activeAutomata = 'dfa'"
+        >
+          DFA
+        </button>
+
+        <button 
+          :class="{ active: activeAutomata === 'cfg' }"
+          @click="activeAutomata = 'cfg'"
+        >
+          CFG
+        </button>
+
+        <button 
+          :class="{ active: activeAutomata === 'pda' }"
+          @click="activeAutomata = 'pda'"
+        >
+          PDA
+        </button>
+      </div>
+
+      <!-- Visualization -->
       <div class="section">
         <div v-if="activeAutomata === 'dfa'">
-           <Diagram :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" :simKey="simulationKey" />
+          <Diagram 
+            :problemId="problems[selectedProblemIndex].id" 
+            :testString="currentTestString" 
+            :simKey="simulationKey" 
+          />
         </div>
+
         <div v-else-if="activeAutomata === 'cfg'">
-           <CFGVisualization :problemId="problems[selectedProblemIndex].id" :testString="currentTestString" />
+          <CFGVisualization 
+            :problemId="problems[selectedProblemIndex].id" 
+            :testString="currentTestString" 
+          />
         </div>
+
         <div v-else-if="activeAutomata === 'pda'">
-           <PDAVisualization :problemId="problems[selectedProblemIndex].id" />
+          <PDAVisualization 
+            :problemId="problems[selectedProblemIndex].id" 
+          />
         </div>
       </div>
+
     </div>
   </div>
-
 
   <div v-else-if="currentView === 'manual'">
     <UserManual />
   </div>
-
 </template>
 
 <style scoped>
 .single-section {
-    border: 1px solid #000000;
-    padding: 20px;
-    background: #fff;
+  border: 1px solid #000000;
+  padding: 20px;
+  background: #fff;
 }
 
+/* 🔥 Controls container */
 .visualization-controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 30px 0 10px;
 }
 
+/* 🔥 Button base */
 .visualization-controls button {
-    padding: 8px 16px;
-    cursor: pointer;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+
+  background: #ffffff;
+  color: #333;
+  font-size: 13px;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* Hover */
+.visualization-controls button:hover {
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+
+/* 🔥 Active button */
+.visualization-controls button.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
 }
 </style>
-

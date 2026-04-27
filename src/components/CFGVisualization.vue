@@ -9,7 +9,6 @@ const props = defineProps({
 
 const svgRef = ref(null)
 
-// CFG data — each production groups all alternatives: { lhs, alts: [...] }
 const CFG_DATA = {
     1: {
         startSymbol: 'S',
@@ -28,16 +27,15 @@ const CFG_DATA = {
     2: {
         startSymbol: 'S',
         productions: [
-            { lhs: 'S', alts: ['ABCDEF'] },
-            { lhs: 'A', alts: ['0', '1'] },
+            { lhs: 'S', alts: ['ABACDEA'] },
+            { lhs: 'A', alts: ['0A', '1A', 'λ'] },
             { lhs: 'B', alts: ['11', '00', '101', '010'] },
-            { lhs: 'C', alts: ['0', '1', '11', '00', '101'] },
-            { lhs: 'D', alts: ['11', '00'] },
-            { lhs: 'E', alts: ['0', '1'] },
-            { lhs: 'F', alts: ['0', '1', '11'] },
+            { lhs: 'C', alts: ['11', '00'] },
+            { lhs: 'D', alts: ['CD', '101D', 'λ'] },
+            { lhs: 'E', alts: ['1', '0'] },
         ],
         terminals: ['0', '1'],
-        nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E', 'F']
+        nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E']
     }
 }
 
@@ -48,42 +46,33 @@ const REGEX_MAP = {
 
 const cfg = computed(() => CFG_DATA[props.problemId] || CFG_DATA[1])
 const problemRegex = computed(() => REGEX_MAP[props.problemId])
+const hoveredRow = ref(null)
 
-// Generate a simple derivation tree structure
+const tokenizeAlt = (alt) => {
+    return [...alt].map(ch => ({
+        ch,
+        isNT: cfg.value.nonTerminals.includes(ch)
+    }))
+}
+
 const generateDerivationTree = (inputStr, cfgData) => {
     if (!inputStr) return null
-    
     const symbols = inputStr.split('')
-    
-    // Build tree structure
-    const root = {
-        id: 'root',
-        name: cfgData.startSymbol,
-        children: []
-    }
-    
-    // Simple recursive derivation (demonstration)
+    const root = { id: 'root', name: cfgData.startSymbol, children: [] }
     let currentLevel = [root]
     let symbolIndex = 0
-    
-    // Limit depth to avoid infinite loops
     let depth = 0
     const maxDepth = 20
-    
     while (symbolIndex < symbols.length && depth < maxDepth) {
         const nextLevel = []
-        
         for (const node of currentLevel) {
             if (cfgData.nonTerminals.includes(node.name)) {
-                // Find a production that can derive this terminal
                 const matchingProd = cfgData.productions.find(p => {
                     if (p.lhs !== node.name) return false
-                    // Check if RHS contains the current symbol or can lead to it
                     const rhsStr = p.rhs.join('')
-                    return rhsStr.includes(symbols[symbolIndex]) || 
+                    return rhsStr.includes(symbols[symbolIndex]) ||
                            (cfgData.nonTerminals.some(nt => rhsStr.includes(nt)))
                 })
-                
                 if (matchingProd) {
                     const children = matchingProd.rhs.map((sym, i) => ({
                         id: `${node.id}-${i}`,
@@ -93,31 +82,26 @@ const generateDerivationTree = (inputStr, cfgData) => {
                     node.children = children
                     nextLevel.push(...children.filter(c => cfgData.nonTerminals.includes(c.name)))
                 } else {
-                    // Just add the terminal
                     node.children = [{ id: `${node.id}-t`, name: symbols[symbolIndex], children: undefined }]
                     symbolIndex++
                 }
             }
         }
-        
         currentLevel = nextLevel
         depth++
     }
-    
-    // Add remaining terminals
     while (symbolIndex < symbols.length) {
         const lastNonTerminal = findLastNonTerminal(root)
         if (lastNonTerminal) {
             lastNonTerminal.children = lastNonTerminal.children || []
-            lastNonTerminal.children.push({ 
-                id: `${lastNonTerminal.id}-${symbolIndex}`, 
+            lastNonTerminal.children.push({
+                id: `${lastNonTerminal.id}-${symbolIndex}`,
                 name: symbols[symbolIndex],
-                children: undefined 
+                children: undefined
             })
         }
         symbolIndex++
     }
-    
     return root
 }
 
@@ -132,275 +116,293 @@ const findLastNonTerminal = (node) => {
     return null
 }
 
-const treeData = computed(() => {
-    return generateDerivationTree(props.testString, cfg.value)
-})
+const treeData = computed(() => generateDerivationTree(props.testString, cfg.value))
 
 const renderTree = () => {
     if (!svgRef.value) return
-    
     const data = treeData.value
-    if (!data) {
-        // Just show the grammar when no input
-        renderGrammar()
-        return
-    }
-    
+    if (!data) { renderGrammar(); return }
     d3.select(svgRef.value).selectAll("*").remove()
-    
-    const svg = d3.select(svgRef.value)
-        .attr("width", "100%")
-        .style("overflow", "visible")
-    
-    // Arrowhead marker
-    svg.append("defs").selectAll("marker")
-        .data(["end"])
-        .enter().append("marker")
-        .attr("id", "arrow-cfg")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 0)
-        .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "#666")
-    
+    const svg = d3.select(svgRef.value).attr("width", "100%").style("overflow", "visible")
+    svg.append("defs").selectAll("marker").data(["end"]).enter().append("marker")
+        .attr("id", "arrow-cfg").attr("viewBox", "0 -5 10 10")
+        .attr("refX", 0).attr("refY", 0).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto")
+        .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#666")
     const margin = { top: 40, right: 90, bottom: 30, left: 90 }
     const width = 800 - margin.left - margin.right
     const height = 400 - margin.top - margin.bottom
-    
-    const g = svg.append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`)
-    
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`)
     const tree = d3.tree().size([width, height])
     const root = d3.hierarchy(data)
-    
     tree(root)
-    
-    // Links
-    g.selectAll(".link")
-        .data(root.links())
-        .enter().append("path")
-        .attr("class", "link")
-        .attr("fill", "none")
-        .attr("stroke", "#666")
-        .attr("stroke-width", 2)
-        .attr("marker-end", "url(#arrow-cfg)")
-        .attr("d", d3.linkVertical()
-            .x(d => d.x)
-            .y(d => d.y)
-        )
-    
-    // Nodes
-    const nodes = g.selectAll(".node")
-        .data(root.descendants())
-        .enter().append("g")
-        .attr("class", "node")
-        .attr("transform", d => `translate(${d.x},${d.y})`)
-    
-    // Node circles
-    nodes.append("circle")
-        .attr("r", 18)
-        .attr("fill", d => {
-            const isTerminal = !cfg.value.nonTerminals.includes(d.data.name)
-            return isTerminal ? '#4caf50' : '#ff9800'
-        })
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 2)
-    
-    // Node labels
-    nodes.append("text")
-        .attr("dy", 4)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "14px")
-        .attr("font-weight", "bold")
-        .attr("fill", "white")
+    g.selectAll(".link").data(root.links()).enter().append("path")
+        .attr("class", "link").attr("fill", "none").attr("stroke", "#666").attr("stroke-width", 2)
+        .attr("marker-end", "url(#arrow-cfg)").attr("d", d3.linkVertical().x(d => d.x).y(d => d.y))
+    const nodes = g.selectAll(".node").data(root.descendants()).enter().append("g")
+        .attr("class", "node").attr("transform", d => `translate(${d.x},${d.y})`)
+    nodes.append("circle").attr("r", 18)
+        .attr("fill", d => !cfg.value.nonTerminals.includes(d.data.name) ? '#4caf50' : '#ff9800')
+        .attr("stroke", "#fff").attr("stroke-width", 2)
+    nodes.append("text").attr("dy", 4).attr("text-anchor", "middle")
+        .attr("font-size", "14px").attr("font-weight", "bold").attr("fill", "white")
         .text(d => d.data.name)
-    
-    // Add viewBox
     svg.attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-        .style("max-width", "100%")
-        .style("height", "auto")
+        .style("max-width", "100%").style("height", "auto")
 }
 
 const renderGrammar = () => {
     if (!svgRef.value) return
-    
     d3.select(svgRef.value).selectAll("*").remove()
-    
-    const svg = d3.select(svgRef.value)
-        .attr("width", "100%")
-        .attr("height", "200")
-    
-    // Grammar is displayed in the template, so just show empty SVG
-    svg.append("text")
-        .attr("x", 50)
-        .attr("y", 100)
-        .attr("font-size", "16px")
-        .attr("fill", "#666")
+    const svg = d3.select(svgRef.value).attr("width", "100%").attr("height", "200")
+    svg.append("text").attr("x", 50).attr("y", 100).attr("font-size", "16px").attr("fill", "#666")
         .text("Derivation tree will appear when you test a string")
 }
 
-watch(() => props.problemId, () => {
-    renderTree()
-})
-
-watch(() => props.testString, () => {
-    renderTree()
-})
-
-onMounted(() => {
-    renderTree()
-})
+watch(() => props.problemId, () => renderTree())
+watch(() => props.testString, () => renderTree())
+onMounted(() => renderTree())
 </script>
 
 <template>
-  <div class="cfg-container">
-    <h3>CFG Visualization (Problem {{ problemId }})</h3>
-    <p v-if="problemRegex" class="regex-display"><code>{{ problemRegex }}</code></p>
-    
-    <!-- Production Rules -->
-    <div class="grammar-rules">
-        <h4>Grammar Rules:</h4>
-        <div class="rules-list">
-            <div v-for="(prod, idx) in cfg.productions" :key="idx" class="production-rule">
-                <span class="lhs">{{ prod.lhs }}</span>
-                <span class="arrow">→</span>
-                <span class="rhs">{{ prod.alts.join(' | ') }}</span>
-            </div>
+  <div class="cfg-wrap">
+
+    <!-- Header -->
+    <div class="cfg-header">
+      <div class="header-left">
+        <span class="badge">CFG</span>
+        <span class="title">Problem {{ problemId }}</span>
+      </div>
+      <div class="header-right">
+        <span class="dot nt-dot"></span><span class="leg">Non-terminal</span>
+        <span class="dot t-dot"></span><span class="leg">Terminal</span>
+      </div>
+    </div>
+
+    <!-- Regex -->
+    <div class="regex-wrap" v-if="problemRegex">
+      <span class="regex-label">Regex</span>
+      <code class="regex-code">{{ problemRegex }}</code>
+    </div>
+
+    <!-- Productions -->
+    <div class="rule-card">
+      <div class="rule-card-head">
+        <span>Productions</span>
+        <span class="rule-count">{{ cfg.productions.length }} rules</span>
+      </div>
+      <div class="rule-list">
+        <div
+          v-for="(prod, idx) in cfg.productions"
+          :key="idx"
+          class="rule-row"
+          :class="{ hovered: hoveredRow === idx }"
+          @mouseenter="hoveredRow = idx"
+          @mouseleave="hoveredRow = null"
+        >
+          <span class="lhs">{{ prod.lhs }}</span>
+          <span class="arrow">→</span>
+          <span class="rhs-group">
+            <template v-for="(alt, ai) in prod.alts" :key="ai">
+              <span v-if="ai > 0" class="pipe">|</span>
+              <span
+                v-for="(tok, ti) in tokenizeAlt(alt)"
+                :key="ti"
+                :class="['tok', tok.isNT ? 'nt' : 't']"
+              >{{ tok.ch }}</span>
+            </template>
+          </span>
+          <span class="row-num">{{ idx + 1 }}</span>
         </div>
+      </div>
     </div>
-    
-    <!-- Derivation Tree -->
-    <!-- <div class="tree-section">
-        <h4>Derivation Tree:</h4>
-        <svg ref="svgRef"></svg>
-    </div> -->
-    
-    <!-- Legend -->
-    <div class="legend">
-        <span class="legend-item">
-            <span class="legend-circle non-terminal"></span>
-            Non-Terminal
-        </span>
-        <span class="legend-item">
-            <span class="legend-circle terminal"></span>
-            Terminal
-        </span>
-    </div>
+
   </div>
 </template>
 
 <style scoped>
-.cfg-container {
-    width: 100%;
+.cfg-wrap {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.5rem;
+    gap: 0.75rem;
+
+    max-width: 900px;        /* 🔥 LIMIT WIDTH */
+    margin: 20px auto;       /* 🔥 CENTER IT */
+    padding: 1.2rem;
+
+    background: #ffffff;     /* 🔥 make it a card */
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+    font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-h3 {
-    margin: 0;
-    color: #222;
-}
-
-.regex-display {
-    margin: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.3rem;
-    color: #666;
-    font-weight: 500;
-}
-
-.regex-display code {
-    font-family: monospace;
-    color: #0f172a;
-    font-size: 1.3rem;
-}
-
-.grammar-rules {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-    width: fit-content;
-}
-
-.rules-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.production-rule {
-    font-family: 'Courier New', monospace;
-    font-size: 1.1rem;
+/* Header */
+.cfg-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
     gap: 0.5rem;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.badge {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 5px;
+}
+.title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e1e2e;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.nt-dot { background: #f59e0b; }
+.t-dot  { background: #10b981; margin-left: 0.6rem; }
+.leg {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Regex */
+.regex-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+}
+.regex-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-top: 2px;
+    white-space: nowrap;
+}
+.regex-code {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #334155;
+    word-break: break-all;
+    line-height: 1.6;
+}
+
+/* Rule card */
+.rule-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+.rule-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 1rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.rule-count {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Rule rows */
+.rule-list {
+    display: flex;
+    flex-direction: column;
+}
+.rule-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    transition: background 0.15s;
+    cursor: default;
+    position: relative;
+}
+.rule-row:last-child {
+    border-bottom: none;
+}
+.rule-row.hovered {
+    background: #fafafa;
+}
+.rule-row.hovered .lhs {
+    color: #d97706;
 }
 
 .lhs {
-    font-weight: bold;
-    color: #e65100;
-    min-width: 20px;
+    font-weight: 700;
+    color: #f59e0b;
+    min-width: 18px;
+    transition: color 0.15s;
 }
-
 .arrow {
-    color: #666;
+    color: #cbd5e1;
+    margin: 0 0.65rem;
+    font-size: 15px;
 }
-
-.rhs {
-    color: #1565c0;
-}
-
-.tree-section {
-    background: #fff;
-    padding: 0.5rem;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-}
-
-.tree-section svg {
-    width: 100%;
-    min-height: 200px;
-}
-
-.legend {
+.rhs-group {
     display: flex;
-    justify-content: center;
-    gap: 1.5rem;
-    padding: 0.5rem;
-}
-
-.legend-item {
-    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 1.3rem;
-    color: #555;
+    gap: 1px;
+    flex: 1;
 }
-
-.legend-circle {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 1px #ccc;
+.pipe {
+    color: #cbd5e1;
+    margin: 0 0.35rem;
+    font-size: 13px;
 }
-
-.legend-circle.non-terminal {
-    background: #ff9800;
+.tok {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
 }
+.tok.nt { color: #f59e0b; }
+.tok.t  { color: #10b981; }
 
-.legend-circle.terminal {
-    background: #4caf50;
+.row-num {
+    font-size: 11px;
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    min-width: 16px;
+    text-align: right;
+}
+.rule-row.hovered .row-num {
+    color: #94a3b8;
 }
 </style>
