@@ -8,6 +8,7 @@ import Diagram from './components/DFAVisualization.vue'
 import PDAVisualization from './components/PDAVisualization.vue'
 import CFGVisualization from './components/CFGVisualization.vue'
 import UserManual from './components/UserManual.vue'
+import Footer from './components/Footer.vue'
 
 const currentView = ref('regex')
 const activeAutomata = ref('dfa')
@@ -132,6 +133,8 @@ const runSimulation = (str) => {
   <div v-else-if="currentView === 'manual'">
     <UserManual />
   </div>
+
+  <Footer />
 </template>
 
 <style scoped>

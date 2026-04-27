@@ -1,6 +1,8 @@
-body {
+html, body {
   margin: 0;
   font-size: 1.15rem;
+  overflow-x: hidden; /* Prevents whole page horizontal scroll */
+  width: 100%;
 }
 
 h1 { font-size: 2.2rem; }
@@ -112,7 +114,7 @@ h4 { font-size: 1.3rem; }
 .pda-wrap,
 .manual-plain,
 .sections-container {
-  overflow-x: auto;
+  overflow-x: hidden;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
