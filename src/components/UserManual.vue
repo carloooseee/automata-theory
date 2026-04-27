@@ -59,6 +59,14 @@
     </section>
 
     <section>
+      <h2>FULL DOCUMENTATION</h2>
+      <p>For a more detailed explanation of the project, including technical documentation and complete user guides, please visit our official Google Docs:</p>
+      <a href="https://docs.google.com/document/d/1ny4ccAVK-HR_crp0zBQ0JsBoIXSl3KXw1x4W2Kmc4O8/edit?usp=sharing" target="_blank" class="doc-link">
+        View Full Documentation (Google Docs)
+      </a>
+    </section>
+
+    <section>
       <h2>PROJECT DETAILS</h2>
       <p><strong>Purpose:</strong> Created for academic purposes for the S-CSPC327 - Theory of Automata and Formal Languages course.</p>
       <p><strong>Development Team:</strong> Laran, Juan Carlos (Lead Developer), Melindo, Angel Vhea, Leovonchiong, Lorenz Liu, and Malla, Marielle Joy (Developers).</p>
@@ -114,6 +122,19 @@ li {
 
 p {
   margin: 15px 0;
+}
+
+.doc-link {
+  display: inline-block;
+  margin-top: 5px;
+  color: #1a73e8;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.doc-link:hover {
+  color: #174ea6;
 }
 
 hr {
