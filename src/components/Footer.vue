@@ -64,15 +64,19 @@
   .footer-content {
     flex-direction: column;
     text-align: center;
-    gap: 10px;
+    gap: 12px;
   }
   
   .team-info {
     text-align: center;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
   }
 
   .bottom-navbar {
-    padding: 20px;
+    padding: 24px 16px;
+    box-sizing: border-box;
   }
 }
 </style>
