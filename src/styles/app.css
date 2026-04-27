@@ -4,77 +4,103 @@ body {
 }
 
 h1 { font-size: 2.2rem; }
-h2 { font-size: 1.8rem; }
+
+/* 🔥 FIX: remove default margins causing gap */
+h2 {
+  font-size: 1.8rem;
+  margin: 0 0 8px 0;
+}
+
 h3 { font-size: 1.5rem; }
 h4 { font-size: 1.3rem; }
 
+/* Section spacing */
 .section {
-  /* border: 1px solid black; */
-  padding: 1rem;
-  margin: 0.5rem;
+  padding: 0.5rem;
+  margin: 0;
 }
 
+/* 🔥 Main layout */
 .problem-input-container {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.problems-section {
-  flex: 1;
-}
-
+/* 🔥 Prevent stretching + align tops */
+.problems-section,
 .input-section {
   flex: 1;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
 }
 
+/* 🔥 MATCH BOTH SIDES */
+.input-section,
+.problems-section {
+  gap: 8px;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .problem-input-container {
     flex-direction: column;
   }
+
   .section h2 {
     text-align: center;
   }
 }
 
+/* Titles */
 .main-title {
   text-align: center;
 }
-    
+
 .main-title p {
   text-align: center;
   font-size: 1.6rem;
   font-weight: bold;
 }
 
-/* Hide horizontal scrollbar globally while keeping functionality */
+/* Global styles */
 * {
-    scrollbar-width: thin; /* For Firefox vertical scrollbar */
-    font-family: monospace !important;
+  scrollbar-width: thin;
+  font-family: monospace !important;
 }
 
-/* Specific for horizontal scrollbar hiding */
+/* Hide horizontal scrollbar */
 .no-scrollbar-x {
-    overflow-x: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .no-scrollbar-x::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
-/* Applying to common containers that might overflow horizontally */
-.dfa-container, .cfg-container, .pda-wrap, .manual-plain, .sections-container {
-    overflow-x: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+/* Containers */
+.dfa-container,
+.cfg-container,
+.pda-wrap,
+.manual-plain,
+.sections-container {
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.dfa-container::-webkit-scrollbar, 
-.cfg-container::-webkit-scrollbar, 
-.pda-wrap::-webkit-scrollbar, 
+.dfa-container::-webkit-scrollbar,
+.cfg-container::-webkit-scrollbar,
+.pda-wrap::-webkit-scrollbar,
 .manual-plain::-webkit-scrollbar,
 .sections-container::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
