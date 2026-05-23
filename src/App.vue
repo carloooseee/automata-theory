@@ -14,7 +14,7 @@ const currentView = ref('regex')
 const activeAutomata = ref('dfa')
 const simulationInputs = ref([])
 
-const automata = ref('automata-theory project')
+const automata = ref('NieR: Automata')
 
 const problems = ref([
   {
@@ -117,6 +117,7 @@ const runSimulation = (str) => {
           <CFGVisualization 
             :problemId="problems[selectedProblemIndex].id" 
             :testString="currentTestString" 
+            :simKey="simulationKey"
           />
         </div>
 

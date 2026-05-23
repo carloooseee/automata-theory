@@ -178,51 +178,63 @@ const initSim = () => {
   return result
 }
 
-const highlightElements = (fromId, toId) => {
+const highlightElements = () => {
     d3.select(svgRef.value).selectAll('circle').attr('stroke', '#fff').attr('stroke-width', 1.5).style('filter', null);
     d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'black').attr('stroke-width', 2);
     
+    if (!simResult.value) return;
+    
     const isAccepted = resultAccepted.value;
     const isDone = done.value;
-    const color = isDone ? (isAccepted ? '#22c55e' : '#ef4444') : '#f59e0b';
+    const activeColor = isDone ? (isAccepted ? '#22c55e' : '#ef4444') : '#f59e0b';
+    const trailColor = activeColor; // Trail matches active status color
     
-    if (toId) {
-        d3.select(svgRef.value).select(`#node-${toId}`)
-          .attr('stroke', color)
-          .attr('stroke-width', 3.5)
-          .style('filter', `drop-shadow(0 0 8px ${color})`);
-    } else if (fromId && !toId) {
-        // Dead state highlight previous node red
-        d3.select(svgRef.value).select(`#node-${fromId}`)
-          .attr('stroke', '#ef4444')
-          .attr('stroke-width', 3.5)
-          .style('filter', `drop-shadow(0 0 8px #ef4444)`);
-    }
+    const steps = simResult.value.steps;
+    const maxIdx = stepIndex.value;
     
-    if (fromId && toId) {
-        // Highlight all lines belonging to the correct char index (there might be multiple chars)
-        const char = currentStep.value?.char;
-        if (char) {
-            const specificLink = d3.select(svgRef.value).select(`#link-${fromId}-${toId}-${char}`);
-            if (!specificLink.empty()) {
-                specificLink.attr('stroke', color).attr('stroke-width', 3);
-            } else {
-                d3.select(svgRef.value).select(`#link-${fromId}-${toId}`).attr('stroke', color).attr('stroke-width', 3);
+    for (let i = 0; i <= maxIdx; i++) {
+        const step = steps[i];
+        if (!step.state) continue; // Skip if dead state
+        
+        const isCurrent = (i === maxIdx);
+        const nodeColor = isCurrent ? activeColor : trailColor;
+        const nodeWidth = isCurrent ? 3.5 : 2.5;
+        
+        d3.select(svgRef.value).select(`#node-${step.state}`)
+          .attr('stroke', nodeColor)
+          .attr('stroke-width', nodeWidth)
+          .style('filter', isCurrent ? `drop-shadow(0 0 8px ${nodeColor})` : null);
+          
+        if (i < maxIdx) {
+            const nextStep = steps[i+1];
+            if (nextStep && nextStep.state && nextStep.char) {
+                const edgeColor = (i === maxIdx - 1 && !isDone) ? activeColor : trailColor;
+                const edgeWidth = (i === maxIdx - 1 && !isDone) ? 3 : 2.5;
+                
+                let specificLink = d3.select(svgRef.value).select(`#link-${step.state}-${nextStep.state}-${nextStep.char}`);
+                if (!specificLink.empty()) {
+                    specificLink.attr('stroke', edgeColor).attr('stroke-width', edgeWidth);
+                } else {
+                    d3.select(svgRef.value).select(`path[id^="link-${step.state}-${nextStep.state}"]`)
+                      .attr('stroke', edgeColor).attr('stroke-width', edgeWidth);
+                }
+            } else if (nextStep && nextStep.dead) {
+                if (i === maxIdx - 1) {
+                     d3.select(svgRef.value).select(`#node-${step.state}`)
+                      .attr('stroke', '#ef4444')
+                      .attr('stroke-width', 3.5)
+                      .style('filter', `drop-shadow(0 0 8px #ef4444)`);
+                }
             }
-        } else {
-            d3.select(svgRef.value).select(`path[id^="link-${fromId}-${toId}"]`).attr('stroke', color).attr('stroke-width', 3);
         }
     }
 }
 
 const advance = (result, idx) => {
-  const from = result.steps[idx].state
-  const to = result.steps[idx + 1]?.state
   stepIndex.value = idx + 1
   
-  highlightElements(from, to)
-
   if (idx + 1 >= result.steps.length - 1) done.value = true
+  highlightElements()
 }
 
 const runAuto = () => {
@@ -234,7 +246,7 @@ const runAuto = () => {
   stepIndex.value = 0
   done.value = false
   
-  highlightElements(null, result.steps[0].state)
+  highlightElements()
   
   const max = result.steps.length - 1
   autoTimer.value = setInterval(() => {
@@ -244,7 +256,7 @@ const runAuto = () => {
       isRunning.value = false
       done.value = true
       // Trigger final highlight update
-      highlightElements(null, result.steps[max].state)
+      highlightElements()
       return
     }
     advance(result, idx)
@@ -453,12 +465,8 @@ onUnmounted(() => {
       <code class="regex-code">{{ problemRegex }}</code>
     </div>
 
-    <div v-if="simResult && !isValidInput" class="invalid-warning">
-      <span>⚠️ Invalid String for this Automaton</span>
-    </div>
-
-    <!-- Simulation Controls Area -->
-    <div class="simulation-status-card">
+    <!-- Visualization Controls -->
+    <div class="simulation-status-card" v-if="isValidInput !== null">
       
       <!-- Tape -->
       <div v-if="tape.length > 0" class="tape-section">

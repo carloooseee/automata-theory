@@ -34,7 +34,7 @@ onMounted(() => {
 
     <!-- TITLE -->
     <div class="nav-title">
-      automata-theory project
+      NieR: Automata
     </div>
 
     <!-- BUTTONS -->

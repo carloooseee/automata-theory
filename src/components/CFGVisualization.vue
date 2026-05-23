@@ -1,13 +1,19 @@
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, computed, onUnmounted } from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
     problemId: { type: Number, required: true },
-    testString: { type: String, default: '' }
+    testString: { type: String, default: '' },
+    simKey: { type: Number, default: 0 }
 })
 
 const svgRef = ref(null)
+
+const stepIndex = ref(0)
+const isRunning = ref(false)
+const done = ref(false)
+const autoTimer = ref(null)
 
 const CFG_DATA = {
     1: {
@@ -21,7 +27,7 @@ const CFG_DATA = {
             { lhs: 'E', alts: ['a', 'b'] },
             { lhs: 'F', alts: ['λ', 'aF', 'bF'] },
         ],
-        terminals: ['a', 'b', 'ε'],
+        terminals: ['a', 'b', 'λ'],
         nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E', 'F']
     },
     2: {
@@ -34,7 +40,7 @@ const CFG_DATA = {
             { lhs: 'D', alts: ['CD', '101D', 'λ'] },
             { lhs: 'E', alts: ['1', '0'] },
         ],
-        terminals: ['0', '1'],
+        terminals: ['0', '1', 'λ'],
         nonTerminals: ['S', 'A', 'B', 'C', 'D', 'E']
     }
 }
@@ -49,118 +55,244 @@ const problemRegex = computed(() => REGEX_MAP[props.problemId])
 const hoveredRow = ref(null)
 
 const tokenizeAlt = (alt) => {
+    if (alt === 'λ' || alt === 'ε') return [{ ch: 'λ', isNT: false }]
     return [...alt].map(ch => ({
         ch,
         isNT: cfg.value.nonTerminals.includes(ch)
     }))
 }
 
-const generateDerivationTree = (inputStr, cfgData) => {
-    if (!inputStr) return null
-    const symbols = inputStr.split('')
-    const root = { id: 'root', name: cfgData.startSymbol, children: [] }
-    let currentLevel = [root]
-    let symbolIndex = 0
-    let depth = 0
-    const maxDepth = 20
-    while (symbolIndex < symbols.length && depth < maxDepth) {
-        const nextLevel = []
-        for (const node of currentLevel) {
-            if (cfgData.nonTerminals.includes(node.name)) {
-                const matchingProd = cfgData.productions.find(p => {
-                    if (p.lhs !== node.name) return false
-                    const rhsStr = p.rhs.join('')
-                    return rhsStr.includes(symbols[symbolIndex]) ||
-                           (cfgData.nonTerminals.some(nt => rhsStr.includes(nt)))
-                })
-                if (matchingProd) {
-                    const children = matchingProd.rhs.map((sym, i) => ({
-                        id: `${node.id}-${i}`,
-                        name: sym,
-                        children: cfgData.nonTerminals.includes(sym) ? [] : undefined
-                    }))
-                    node.children = children
-                    nextLevel.push(...children.filter(c => cfgData.nonTerminals.includes(c.name)))
-                } else {
-                    node.children = [{ id: `${node.id}-t`, name: symbols[symbolIndex], children: undefined }]
-                    symbolIndex++
-                }
+// Backtracking parser for the CFG
+const parseCFG = (inputStr, cfgData) => {
+    if (inputStr === null || inputStr === undefined) return null;
+    let targetStr = inputStr === '' ? '' : inputStr;
+    
+    const memo = new Map();
+
+    const parseSequence = (tokens, str) => {
+        if (tokens.length === 0) {
+            return [{ children: [], consumed: 0 }];
+        }
+        
+        const [firstToken, ...restTokens] = tokens;
+        const firstResults = parse(firstToken, str);
+        
+        const results = [];
+        for (const firstRes of firstResults) {
+            const restStr = str.slice(firstRes.consumed);
+            const restResults = parseSequence(restTokens, restStr);
+            for (const restRes of restResults) {
+                results.push({
+                    children: [firstRes.tree, ...restRes.children],
+                    consumed: firstRes.consumed + restRes.consumed
+                });
             }
         }
-        currentLevel = nextLevel
-        depth++
+        return results;
     }
-    while (symbolIndex < symbols.length) {
-        const lastNonTerminal = findLastNonTerminal(root)
-        if (lastNonTerminal) {
-            lastNonTerminal.children = lastNonTerminal.children || []
-            lastNonTerminal.children.push({
-                id: `${lastNonTerminal.id}-${symbolIndex}`,
-                name: symbols[symbolIndex],
-                children: undefined
-            })
+
+    const parse = (symbol, str) => {
+        const memoKey = `${symbol}-${str.length}`;
+        if (memo.has(memoKey)) return memo.get(memoKey);
+
+        if (!cfgData.nonTerminals.includes(symbol)) {
+            if (symbol === 'λ' || symbol === 'ε') {
+                return [{ tree: { name: 'λ', children: undefined }, consumed: 0 }];
+            }
+            if (str.length > 0 && str[0] === symbol) {
+                return [{ tree: { name: symbol, children: undefined }, consumed: 1 }];
+            }
+            return [];
         }
-        symbolIndex++
+
+        const prod = cfgData.productions.find(p => p.lhs === symbol);
+        if (!prod) return [];
+
+        const results = [];
+        for (const alt of prod.alts) {
+            const tokens = (alt === 'λ' || alt === 'ε') ? ['λ'] : alt.split('');
+            const seqResults = parseSequence(tokens, str);
+            for (const seqRes of seqResults) {
+                results.push({
+                    tree: { name: symbol, children: seqRes.children },
+                    consumed: seqRes.consumed
+                });
+            }
+        }
+        
+        memo.set(memoKey, results);
+        return results;
+    };
+
+    const startResults = parse(cfgData.startSymbol, targetStr);
+    const successResult = startResults.find(r => r.consumed === targetStr.length);
+    
+    if (successResult) {
+        const finalTree = JSON.parse(JSON.stringify(successResult.tree));
+        let idCounter = 0;
+        const assignIds = (node) => {
+            node.id = `n-${idCounter++}`;
+            if (node.children) node.children.forEach(assignIds);
+        };
+        assignIds(finalTree);
+        return { tree: finalTree, accepted: true };
     }
-    return root
+
+    return { tree: null, accepted: false };
+};
+
+const parseResult = computed(() => parseCFG(props.testString, cfg.value))
+const treeData = computed(() => parseResult.value?.tree || null)
+const isValidInput = computed(() => parseResult.value?.accepted || false)
+
+const extractLeftmostDerivation = (root) => {
+    if (!root) return []
+    const steps = []
+    
+    let currentStringNodes = [root]
+    const visibleNodeIds = new Set([root.id])
+    
+    const recordStep = () => {
+        steps.push({
+            visibleNodeIds: new Set(visibleNodeIds),
+            derivationString: currentStringNodes.map(n => n.name).join('')
+        })
+    }
+    
+    recordStep()
+    
+    let canExpand = true
+    while(canExpand) {
+        canExpand = false
+        for (let i = 0; i < currentStringNodes.length; i++) {
+            const node = currentStringNodes[i];
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(c => visibleNodeIds.add(c.id))
+                currentStringNodes.splice(i, 1, ...node.children)
+                canExpand = true
+                recordStep()
+                break; 
+            }
+        }
+    }
+    
+    return steps
 }
 
-const findLastNonTerminal = (node) => {
-    if (!node.children || node.children.length === 0) {
-        return cfg.value.nonTerminals.includes(node.name) ? node : null
-    }
-    for (let i = node.children.length - 1; i >= 0; i--) {
-        const result = findLastNonTerminal(node.children[i])
-        if (result) return result
-    }
-    return null
-}
-
-const treeData = computed(() => generateDerivationTree(props.testString, cfg.value))
+const derivationSteps = computed(() => extractLeftmostDerivation(treeData.value))
+const currentStepData = computed(() => derivationSteps.value[stepIndex.value] || null)
 
 const renderTree = () => {
     if (!svgRef.value) return
     const data = treeData.value
-    if (!data) { renderGrammar(); return }
+    if (!data) { 
+        d3.select(svgRef.value).selectAll("*").remove(); 
+        return;
+    }
+    
+    const visibleSet = currentStepData.value?.visibleNodeIds || new Set();
+
     d3.select(svgRef.value).selectAll("*").remove()
     const svg = d3.select(svgRef.value).attr("width", "100%").style("overflow", "visible")
+    
     svg.append("defs").selectAll("marker").data(["end"]).enter().append("marker")
         .attr("id", "arrow-cfg").attr("viewBox", "0 -5 10 10")
         .attr("refX", 0).attr("refY", 0).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto")
         .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#666")
-    const margin = { top: 40, right: 90, bottom: 30, left: 90 }
+        
+    const margin = { top: 40, right: 40, bottom: 40, left: 40 }
     const width = 800 - margin.left - margin.right
     const height = 400 - margin.top - margin.bottom
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`)
+    
     const tree = d3.tree().size([width, height])
     const root = d3.hierarchy(data)
     tree(root)
-    g.selectAll(".link").data(root.links()).enter().append("path")
+    
+    // Only bind data for visible nodes
+    const visibleLinks = root.links().filter(d => visibleSet.has(d.target.data.id))
+    const visibleNodes = root.descendants().filter(d => visibleSet.has(d.data.id))
+
+    g.selectAll(".link").data(visibleLinks, d => d.target.data.id)
+        .join("path")
         .attr("class", "link").attr("fill", "none").attr("stroke", "#666").attr("stroke-width", 2)
-        .attr("marker-end", "url(#arrow-cfg)").attr("d", d3.linkVertical().x(d => d.x).y(d => d.y))
-    const nodes = g.selectAll(".node").data(root.descendants()).enter().append("g")
+        .attr("marker-end", "url(#arrow-cfg)")
+        .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y))
+        
+    const nodes = g.selectAll(".node").data(visibleNodes, d => d.data.id)
+        .join("g")
         .attr("class", "node").attr("transform", d => `translate(${d.x},${d.y})`)
+        
     nodes.append("circle").attr("r", 18)
-        .attr("fill", d => !cfg.value.nonTerminals.includes(d.data.name) ? '#4caf50' : '#ff9800')
+        .attr("fill", d => !cfg.value.nonTerminals.includes(d.data.name) ? '#4caf50' : '#f59e0b')
         .attr("stroke", "#fff").attr("stroke-width", 2)
+        
     nodes.append("text").attr("dy", 4).attr("text-anchor", "middle")
         .attr("font-size", "14px").attr("font-weight", "bold").attr("fill", "white")
         .text(d => d.data.name)
+        
     svg.attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
         .style("max-width", "100%").style("height", "auto")
 }
 
-const renderGrammar = () => {
-    if (!svgRef.value) return
-    d3.select(svgRef.value).selectAll("*").remove()
-    const svg = d3.select(svgRef.value).attr("width", "100%").attr("height", "200")
-    svg.append("text").attr("x", 50).attr("y", 100).attr("font-size", "16px").attr("fill", "#666")
-        .text("Derivation tree will appear when you test a string")
+const simulationStarted = ref(false)
+
+const doReset = () => {
+    clearInterval(autoTimer.value);
+    autoTimer.value = null;
+    isRunning.value = false;
+    stepIndex.value = 0;
+    done.value = false;
+    simulationStarted.value = false;
+    renderTree();
 }
 
-watch(() => props.problemId, () => renderTree())
-watch(() => props.testString, () => renderTree())
-onMounted(() => renderTree())
+const advance = (idx) => {
+    stepIndex.value = idx + 1;
+    if (idx + 1 >= derivationSteps.value.length - 1) done.value = true;
+    renderTree();
+}
+
+const runAuto = () => {
+    doReset();
+    
+    simulationStarted.value = true;
+    if (!treeData.value) return; // invalid string
+    
+    isRunning.value = true;
+    let idx = 0;
+    stepIndex.value = 0;
+    done.value = false;
+    
+    renderTree();
+    
+    const max = derivationSteps.value.length - 1;
+    autoTimer.value = setInterval(() => {
+        if (idx >= max) {
+            clearInterval(autoTimer.value);
+            autoTimer.value = null;
+            isRunning.value = false;
+            done.value = true;
+            renderTree();
+            return;
+        }
+        advance(idx);
+        idx++;
+    }, 800);
+}
+
+watch(() => props.problemId, () => { doReset(); });
+watch(() => props.testString, () => {
+    doReset();
+});
+watch(() => props.simKey, () => {
+    if (props.testString !== null && props.testString !== undefined) {
+        runAuto();
+    }
+});
+
+onMounted(() => { renderTree(); })
+onUnmounted(() => { clearInterval(autoTimer.value); })
 </script>
 
 <template>
@@ -214,6 +346,48 @@ onMounted(() => renderTree())
           <span class="row-num">{{ idx + 1 }}</span>
         </div>
       </div>
+    </div>
+    
+    <!-- Simulation Controls Area -->
+    <div class="simulation-status-card" v-if="simulationStarted">
+      <div class="section-label">Target String</div>
+      <div class="tape-container no-scrollbar-x">
+          <div
+            v-for="(ch, i) in (testString || 'λ').split('')"
+            :key="i"
+            :class="['tape-cell', isValidInput ? 'target' : 'target-fail']"
+          >
+            {{ ch }}
+          </div>
+      </div>
+        
+      <div class="section-label" style="margin-top: 10px;">Current Derivation</div>
+      <div class="derivation-string">
+          <span v-if="!isValidInput" class="deriv-char" style="color: #ef4444;">No valid derivation</span>
+          <span v-else v-for="(ch, i) in currentStepData?.derivationString?.split('') || []" :key="i" 
+            :class="['deriv-char', cfg.nonTerminals.includes(ch) ? 'nt' : 't']">{{ ch }}</span>
+      </div>
+
+      <div class="status-row" style="margin-top: 10px;">
+        <div class="result-banner-box">
+          <transition name="pop">
+            <div v-if="!isValidInput" class="banner banner-fail">
+              <span>✕ String Rejected (Parse Failed)</span>
+            </div>
+            <div v-else-if="done" class="banner banner-ok">
+              <span>✓ Target String Reached</span>
+            </div>
+            <div v-else-if="isRunning" class="banner banner-active">
+              <span>Deriving... Step {{ stepIndex + 1 }} / {{ derivationSteps.length }}</span>
+            </div>
+          </transition>
+        </div>
+      </div>
+    </div>
+
+    <!-- SVG Visualization for Derivation Tree -->
+    <div class="viz-container" v-show="simulationStarted && isValidInput">
+      <svg ref="svgRef"></svg>
     </div>
 
   </div>
@@ -404,5 +578,119 @@ onMounted(() => renderTree())
 }
 .rule-row.hovered .row-num {
     color: #94a3b8;
+}
+
+/* Simulation status card */
+.simulation-status-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.tape-container {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+    overflow-x: auto;
+}
+.tape-cell {
+    min-width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 14px;
+    background: #f8fafc;
+}
+.tape-cell.target {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+.tape-cell.target-fail {
+    background: #fef2f2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.derivation-string {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 12px;
+    background: #1e1e2e;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    min-height: 48px;
+    align-items: center;
+}
+.deriv-char.nt { color: #f59e0b; }
+.deriv-char.t  { color: #4caf50; }
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.banner {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-block;
+}
+.banner-ok   { background: #16a34a; color: white; }
+.banner-fail { background: #ef4444; color: white; }
+.banner-active { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+.invalid-warning {
+    background: #fef2f2;
+    color: #991b1b;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #fee2e2;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Viz container */
+.viz-container {
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    background: #fafafa;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.pop-enter-active { animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.no-scrollbar-x {
+  scrollbar-width: none;
+}
+.no-scrollbar-x::-webkit-scrollbar {
+  display: none;
 }
 </style>
