@@ -22,7 +22,7 @@ const REGEX_MAP = {
         <span class="title">Problem {{ problemId }}</span>
       </div>
       <div class="header-right">
-        <span class="attribution">Assigned by Carlos (Regex 1) & Angel (Regex 2)</span>
+        <span class="attribution">⬭ Start ◇ Read ⬭ Accept ⬭ Reject </span>
       </div>
     </div>
 
