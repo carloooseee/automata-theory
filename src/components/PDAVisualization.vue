@@ -12,7 +12,7 @@ const svgRef = ref(null)
 const PDA_CONFIGS = {
   1: {
     nodes: [
-      { id: 'S1', label: 'Start', type: 'start', shape: 'ellipse', fx: 0, fy: 0 },
+      { id: 'S1', label: 'Start', type: 'start', shape: 'ellipse', fx: 0, fy: 50 },
       { id: 'S2', label: 'Read', type: 'read', shape: 'diamond', fx: 0, fy: 150 },
       { id: 'S3', label: 'Reject', type: 'reject', shape: 'ellipse', fx: -200, fy: 150 },
       { id: 'S4', label: 'Read', type: 'read', shape: 'diamond', fx: 200, fy: 150 },
