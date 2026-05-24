@@ -48,13 +48,32 @@ const runSimulation = (str) => {
   currentTestString.value = str
   simulationKey.value++
 }
+
+const isDarkMode = ref(false)
+import { onMounted, onUnmounted } from 'vue'
+let observer = null
+
+onMounted(() => {
+  isDarkMode.value = document.body.classList.contains('dark-mode')
+  observer = new MutationObserver(() => {
+    isDarkMode.value = document.body.classList.contains('dark-mode')
+  })
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] })
+})
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
+})
 </script>
 
 <template>
   <NavBar @change-view="setView" />
   
   <div v-if="currentView === 'regex'">
-    <h1 class="main-title">{{ automata }}</h1>
+    <div class="main-logo-container">
+      <img v-if="isDarkMode" src="@/assets/logo-dark-mode.png" class="main-logo" alt="NieR: Automata" />
+      <img v-else src="@/assets/logo-white-mode.png" class="main-logo" alt="NieR: Automata" />
+    </div>
     <p class="main-title">Interactive Regular Expressions Simulator</p>
 
     <div class="sections-container">
@@ -195,5 +214,19 @@ const runSimulation = (str) => {
     font-size: 12px;
     flex: 1;
   }
+}
+
+/* Logo Styles */
+.main-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0 10px;
+}
+
+.main-logo {
+  max-width: 600px;
+  width: 100%;
+  height: auto;
 }
 </style>

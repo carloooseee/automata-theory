@@ -34,7 +34,8 @@ onMounted(() => {
 
     <!-- TITLE -->
     <div class="nav-title">
-      NieR: Automata
+      <img v-if="isDarkMode" src="@/assets/logo-dark-mode.png" alt="NieR: Automata" class="nav-logo" />
+      <img v-else src="@/assets/logo-white-mode.png" alt="NieR: Automata" class="nav-logo" />
     </div>
 
     <!-- BUTTONS -->
@@ -75,10 +76,14 @@ onMounted(() => {
 
 /* TITLE */
 .nav-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e293b;
-  transition: color 0.3s;
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  height: 28px;
+  width: auto;
+  transition: opacity 0.3s ease;
 }
 
 /* BUTTON GROUP */
