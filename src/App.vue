@@ -124,6 +124,8 @@ const runSimulation = (str) => {
         <div v-else-if="activeAutomata === 'pda'">
           <PDAVisualization 
             :problemId="problems[selectedProblemIndex].id" 
+            :testString="currentTestString"
+            :simKey="simulationKey"
           />
         </div>
       </div>

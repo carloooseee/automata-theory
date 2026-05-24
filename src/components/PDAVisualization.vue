@@ -4,10 +4,17 @@ import * as d3 from 'd3'
 import pdaregex2 from '@/assets/pdaregex2.png'
 
 const props = defineProps({
-    problemId: { type: Number, required: true }
+    problemId: { type: Number, required: true },
+    testString: { type: String, default: null },
+    simKey: { type: Number, default: 0 }
 })
 
 const svgRef = ref(null)
+const stepIndex = ref(0)
+const isRunning = ref(false)
+const done = ref(false)
+const simResult = ref(null)
+const autoTimer = ref(null)
 
 const PDA_CONFIGS = {
   1: {
@@ -117,6 +124,208 @@ const REGEX_MAP = {
 
 const pda = computed(() => PDA_CONFIGS[props.problemId])
 const problemRegex = computed(() => REGEX_MAP[props.problemId])
+
+const steps = computed(() =>
+  simResult.value ? simResult.value.steps : [{ state: pda.value?.nodes.find(n => n.type === 'start')?.id, charIndex: -1, char: null }]
+)
+
+const currentStep = computed(() => steps.value[stepIndex.value] || steps.value[steps.value.length - 1])
+const currentState = computed(() => currentStep.value?.state ?? null)
+const currentCharIdx = computed(() => simResult.value ? (steps.value[stepIndex.value]?.charIndex ?? -1) : -1)
+
+const resultAccepted = computed(() => done.value && !!simResult.value?.accepted)
+
+const runSimulation = (input) => {
+    const data = PDA_CONFIGS[props.problemId];
+    if (!data) return { steps: [], accepted: false };
+    
+    const startNode = data.nodes.find(n => n.type === 'start');
+    if (!startNode) return { steps: [], accepted: false };
+
+    let current = startNode.id;
+    let charIndex = -1; 
+    const stepsList = [{ state: current, charIndex, char: null }];
+    
+    const getNextLinks = (state) => data.links.filter(l => (l.source.id || l.source) === state);
+
+    let outgoing = getNextLinks(current);
+    let epsLink = outgoing.find(l => l.label === '');
+    if (epsLink) {
+        current = epsLink.target.id || epsLink.target;
+        if (current === 'L1') current = 'S1';
+        stepsList.push({ state: current, charIndex, char: null });
+    }
+
+    let alive = true;
+    while (alive) {
+        const node = data.nodes.find(n => n.id === current);
+        if (!node) break;
+
+        if (node.type === 'accept' || node.type === 'reject') {
+            break;
+        }
+
+        if (node.type === 'read') {
+            const nextCharIdx = charIndex + 1;
+            const ch = nextCharIdx < input.length ? input[nextCharIdx] : null;
+            outgoing = getNextLinks(current);
+            
+            let nextLink = null;
+            if (ch !== null) {
+                nextLink = outgoing.find(l => l.label === ch || l.label.includes(ch));
+            }
+            
+            if (!nextLink) {
+                nextLink = outgoing.find(l => l.label === '∆' || l.label === 'null');
+            }
+
+            if (!nextLink) {
+                stepsList.push({ state: null, charIndex: nextCharIdx, char: ch, dead: true });
+                alive = false;
+                break;
+            }
+
+            let nextTarget = nextLink.target.id || nextLink.target;
+            if (nextTarget === 'L1') nextTarget = 'S1';
+            current = nextTarget;
+
+            if (ch !== null && nextLink.label !== '∆' && nextLink.label !== 'null') {
+                charIndex = nextCharIdx;
+                stepsList.push({ state: current, charIndex, char: ch });
+            } else {
+                stepsList.push({ state: current, charIndex: nextCharIdx, char: ch || '∆' });
+            }
+        } else {
+            break;
+        }
+    }
+
+    const finalNode = data.nodes.find(n => n.id === current);
+    const accepted = finalNode ? finalNode.type === 'accept' : false;
+    return { steps: stepsList, accepted };
+}
+
+const isValidInput = computed(() => {
+    if (props.testString === null || props.testString === undefined) return false;
+    const result = runSimulation(props.testString)
+    return result.accepted
+})
+
+const tape = computed(() => {
+  if (!props.testString) return []
+  return props.testString.split('').map((ch, i) => {
+    const idx = currentCharIdx.value
+    if (!simResult.value) return { ch, status: 'pending' }
+    if (i < idx) return { ch, status: 'done' }
+    if (i === idx) return { ch, status: 'active' }
+    return { ch, status: 'pending' }
+  })
+})
+
+const initSim = () => {
+  const result = runSimulation(props.testString)
+  simResult.value = result
+  return result
+}
+
+const highlightElements = () => {
+    if (!svgRef.value) return;
+    d3.select(svgRef.value).selectAll('ellipse, polygon').attr('stroke', null).attr('stroke-width', null).style('filter', null);
+    d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 1.5);
+    
+    if (!simResult.value) return;
+    
+    const isAccepted = resultAccepted.value;
+    const isDone = done.value;
+    const activeColor = isDone ? (isAccepted ? '#22c55e' : '#ef4444') : '#f59e0b';
+    const trailColor = activeColor;
+    
+    const stepsList = simResult.value.steps;
+    const maxIdx = stepIndex.value;
+    
+    for (let i = 0; i <= maxIdx; i++) {
+        const step = stepsList[i];
+        if (!step.state) continue;
+        
+        const isCurrent = (i === maxIdx);
+        const nodeColor = isCurrent ? activeColor : trailColor;
+        const nodeWidth = isCurrent ? 3.5 : 2.5;
+        
+        d3.select(svgRef.value).select(`#node-${step.state}`)
+          .attr('stroke', nodeColor)
+          .attr('stroke-width', nodeWidth)
+          .style('filter', isCurrent ? `drop-shadow(0 0 8px ${nodeColor})` : null);
+          
+        if (i < maxIdx) {
+            const nextStep = stepsList[i+1];
+            if (nextStep && nextStep.state) {
+                const edgeColor = (i === maxIdx - 1 && !isDone) ? activeColor : trailColor;
+                const edgeWidth = (i === maxIdx - 1 && !isDone) ? 3 : 2.5;
+                
+                let targetId = nextStep.state;
+                if (targetId === 'S1') {
+                    const d = pda.value.links.find(l => (l.source.id || l.source) === step.state && ((l.target.id || l.target) === 'S1' || (l.target.id || l.target) === 'L1'));
+                    if (d) targetId = d.target.id || d.target;
+                }
+                
+                d3.select(svgRef.value).select(`path[id^="link-${step.state}-${targetId}"]`)
+                  .attr('stroke', edgeColor).attr('stroke-width', edgeWidth);
+            } else if (nextStep && nextStep.dead) {
+                if (i === maxIdx - 1) {
+                     d3.select(svgRef.value).select(`#node-${step.state}`)
+                      .attr('stroke', '#ef4444')
+                      .attr('stroke-width', 3.5)
+                      .style('filter', `drop-shadow(0 0 8px #ef4444)`);
+                }
+            }
+        }
+    }
+}
+
+const advance = (result, idx) => {
+  stepIndex.value = idx + 1
+  if (idx + 1 >= result.steps.length - 1) done.value = true
+  highlightElements()
+}
+
+const runAuto = () => {
+  if (props.testString === null || props.testString === undefined) return;
+  doReset();
+  const result = initSim()
+  isRunning.value = true
+  let idx = 0
+  stepIndex.value = 0
+  done.value = false
+  highlightElements()
+  
+  const max = result.steps.length - 1
+  autoTimer.value = setInterval(() => {
+    if (idx >= max) {
+      clearInterval(autoTimer.value)
+      autoTimer.value = null
+      isRunning.value = false
+      done.value = true
+      highlightElements()
+      return
+    }
+    advance(result, idx)
+    idx++
+  }, 800)
+}
+
+const doReset = () => {
+  clearInterval(autoTimer.value)
+  autoTimer.value = null
+  isRunning.value = false
+  stepIndex.value = 0
+  done.value = false
+  simResult.value = null
+  
+  if (svgRef.value) {
+      d3.select(svgRef.value).selectAll('ellipse, polygon').attr('stroke', null).attr('stroke-width', null).style('filter', null);
+      d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 1.5);
+  }
+}
 
 const renderPDA = () => {
     if (!svgRef.value || !PDA_CONFIGS[props.problemId]) return;
@@ -263,11 +472,30 @@ const renderPDA = () => {
 };
 
 watch(() => props.problemId, () => {
+    doReset();
     renderPDA();
+});
+
+watch(() => props.testString, (newStr) => {
+    if (newStr !== null && newStr !== undefined) {
+        runAuto();
+    } else {
+        doReset();
+    }
+});
+
+watch(() => props.simKey, () => {
+    if (props.testString !== null && props.testString !== undefined) {
+        runAuto();
+    }
 });
 
 onMounted(() => {
     renderPDA();
+});
+
+onUnmounted(() => {
+    clearInterval(autoTimer.value);
 });
 </script>
 
@@ -292,6 +520,50 @@ onMounted(() => {
     <div class="regex-wrap" v-if="problemRegex">
       <span class="regex-label">Regex</span>
       <code class="regex-code">{{ problemRegex }}</code>
+    </div>
+
+    <!-- Visualization Controls -->
+    <div class="simulation-status-card" v-if="isValidInput !== null">
+      
+      <!-- Tape -->
+      <div v-if="tape.length > 0" class="tape-section">
+        <div class="section-label">Tape</div>
+        <div class="tape-container no-scrollbar-x">
+          <div
+            v-for="(cell, i) in tape"
+            :key="i"
+            :class="['tape-cell', cell.status]"
+          >
+            {{ cell.ch }}
+          </div>
+        </div>
+      </div>
+
+      <!-- State & Result -->
+      <div class="status-row">
+        <div class="current-state-box" v-if="simResult && currentState">
+          <span class="label">Current State</span>
+          <div :class="['state-badge', done ? (resultAccepted ? 'ok' : 'fail') : 'active']">
+            {{ currentState }}
+          </div>
+        </div>
+
+        <div class="read-char-box" v-if="currentStep?.char != null">
+          <span class="label">Reading</span>
+          <div class="char-badge">{{ currentStep.char }}</div>
+        </div>
+
+        <div class="result-banner-box">
+          <transition name="pop">
+            <div v-if="done" :class="['banner', resultAccepted ? 'banner-ok' : 'banner-fail']">
+              <span v-if="resultAccepted">✓ String Accepted</span>
+              <span v-else-if="props.testString === ''">✕ null string rejected</span>
+              <span v-else>✕ String Rejected</span>
+            </div>
+          </transition>
+        </div>
+      </div>
+
     </div>
 
     <!-- Visualization Container -->
@@ -434,5 +706,119 @@ onMounted(() => {
     max-width: 100%;
     height: auto;
     border-radius: 4px;
+}
+
+/* Simulation status card */
+.simulation-status-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+/* Tape */
+.tape-container {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+    overflow-x: auto;
+}
+.tape-cell {
+    min-width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #f8fafc;
+}
+.tape-cell.done {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+.tape-cell.active {
+    background: #fffbeb;
+    color: #d97706;
+    border-color: #fde68a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Status Row */
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.state-badge {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 13px;
+    border: 1px solid transparent;
+}
+.state-badge.active { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.state-badge.ok     { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.state-badge.fail   { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+.char-badge {
+    padding: 4px 10px;
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    border-radius: 6px;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.banner {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+}
+.banner-ok   { background: #16a34a; color: white; }
+.banner-fail { background: #dc2626; color: white; }
+
+.pop-enter-active { animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Hide scrollbar */
+.no-scrollbar-x {
+  scrollbar-width: none;
+}
+.no-scrollbar-x::-webkit-scrollbar {
+  display: none;
 }
 </style>
