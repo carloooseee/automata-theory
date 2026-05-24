@@ -99,7 +99,7 @@ const renderPDA = () => {
         .attr("id", d => `link-${d.source.id ?? d.source}-${d.target.id ?? d.target}-${d.label}`)
         .attr("fill", "none")
         .attr("stroke", "black")
-        .attr("stroke-width", 1.5)
+        .attr("stroke-width", 1.8)
         .attr("marker-end", d => d.source === d.target ? "url(#arrow-loop)" : "url(#arrow)");
 
     const linkLabel = svg.append("g").selectAll("text")
@@ -120,8 +120,8 @@ const renderPDA = () => {
         .data(data.nodes.filter(d => d.shape === 'ellipse'))
         .join("ellipse")
         .attr("id", d => `node-${d.id}`)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 2)
+        // .attr("stroke", "#fff")
+        // .attr("stroke-width", 2)
         .attr("rx", 40)
         .attr("ry", 28)
         .attr("fill", d => d.type === 'accept' ? '#4caf50' : (d.type === 'start' ? '#ff9800' : '#f44336'));
@@ -132,8 +132,8 @@ const renderPDA = () => {
         .join("polygon")
         .attr("id", d => `node-${d.id}`)
         .attr("points", "0,-35 45,0 0,35 -45,0")
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 2)
+        // .attr("stroke", "#fff")
+        // .attr("stroke-width", 2)
         .attr("fill", "#2196f3");
 
     const label = svg.append("g").selectAll("text.main-label")
