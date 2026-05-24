@@ -89,7 +89,7 @@ const PDA_CONFIGS = {
       { source: 'S6', target: 'L1', label: '0', curve: 1.5, sweep: 1 },
       { source: 'S5', target: 'L1', label: '1', curve: 1.5, sweep: 0 },
       { source: 'S6', target: 'S9', label: 'null' },
-      { source: 'S6', target: 'S7', label: '1', curve: 1.5, sweep: 1 },
+      { source: 'S6', target: 'S7', label: '1' },
       { source: 'S7', target: 'S4', label: 'null' },
       { source: 'S5', target: 'S7', label: '0'},
       { source: 'S5', target: 'S8', label: 'null' },
@@ -151,7 +151,7 @@ const renderPDA = () => {
         .attr("id", d => `link-${d.source.id ?? d.source}-${d.target.id ?? d.target}-${d.label}`)
         .attr("fill", "none")
         .attr("stroke", "black")
-        .attr("stroke-width", 1.8)
+        .attr("stroke-width", 1.5)
         .attr("marker-end", d => {
             if (d.source === d.target) return "url(#arrow-loop)";
             if ((d.target.id || d.target) === 'L1') return "url(#arrow-loop)";
