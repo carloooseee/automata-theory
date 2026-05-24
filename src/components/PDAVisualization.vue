@@ -55,6 +55,58 @@ const PDA_CONFIGS = {
       { source: 'S13', target: 'S13', label: 'a, b' },
       { source: 'S13', target: 'S14', label: 'null' }
     ]
+  },
+  2: {
+    nodes: [
+      { id: 'S0', label: 'Start', type: 'start', shape: 'ellipse', fx: 0, fy: 0 },
+      { id: 'L1', label: '', type: 'invisible', shape: 'none', fx: 0, fy: 60 },
+      { id: 'S1', label: 'Read', type: 'read', shape: 'diamond', fx: 0, fy: 120 },
+      { id: 'S2', label: 'Read', type: 'read', shape: 'diamond', fx: 250, fy: 120 },
+      { id: 'S3', label: 'Read', type: 'read', shape: 'diamond', fx: -250, fy: 120 },
+      { id: 'S4', label: 'Reject', type: 'reject', shape: 'ellipse', fx: 0, fy: 280 },
+      { id: 'S5', label: 'Read', type: 'read', shape: 'diamond', fx: 250, fy: 320 },
+      { id: 'S6', label: 'Read', type: 'read', shape: 'diamond', fx: -250, fy: 320 },
+      { id: 'S7', label: 'Read', type: 'read', shape: 'diamond', fx: 0, fy: 480 },
+      { id: 'S8', label: 'Reject', type: 'reject', shape: 'ellipse', fx: 400, fy: 480 },
+      { id: 'S9', label: 'Reject', type: 'reject', shape: 'ellipse', fx: -400, fy: 480 },
+      { id: 'S10', label: 'Read', type: 'read', shape: 'diamond', fx: -150, fy: 640 },
+      { id: 'S11', label: 'Read', type: 'read', shape: 'diamond', fx: 150, fy: 640 },
+      { id: 'S12', label: 'Read', type: 'read', shape: 'diamond', fx: 0, fy: 800 },
+      { id: 'S13', label: 'Read', type: 'read', shape: 'diamond', fx: 0, fy: 960 },
+      { id: 'S14', label: 'Accept', type: 'accept', shape: 'ellipse', fx: 0, fy: 1120 }
+    ],
+    links: [
+      { source: 'S0', target: 'S1', label: '' },
+      { source: 'S1', target: 'S2', label: '0' },
+      { source: 'S1', target: 'S3', label: '1' },
+      { source: 'S1', target: 'S4', label: 'null' },
+      { source: 'S2', target: 'S7', label: '0' },
+      { source: 'S2', target: 'S5', label: '1' },
+      { source: 'S2', target: 'S8', label: 'null', curve: 1.2, sweep: 1 },
+      { source: 'S3', target: 'S7', label: '1' },
+      { source: 'S3', target: 'S6', label: '0' },
+      { source: 'S3', target: 'S9', label: 'null', curve: 1.2, sweep: 0 },
+      { source: 'S6', target: 'L1', label: '0', curve: 1.5, sweep: 1 },
+      { source: 'S5', target: 'L1', label: '1', curve: 1.5, sweep: 0 },
+      { source: 'S6', target: 'S9', label: 'null' },
+      { source: 'S6', target: 'S7', label: '1', curve: 1.5, sweep: 1 },
+      { source: 'S7', target: 'S4', label: 'null' },
+      { source: 'S5', target: 'S7', label: '0'},
+      { source: 'S5', target: 'S8', label: 'null' },
+      { source: 'S7', target: 'S10', label: '0', curve: 1, sweep: 0 },
+      { source: 'S7', target: 'S11', label: '1', curve: 1, sweep: 1 },
+      { source: 'S10', target: 'S7', label: '1', curve: 1, sweep: 0 },
+      { source: 'S11', target: 'S7', label: '0', curve: 1, sweep: 1 },
+      { source: 'S10', target: 'S9', label: 'null'},
+      { source: 'S11', target: 'S8', label: 'null'},
+      { source: 'S10', target: 'S12', label: '0' },
+      { source: 'S11', target: 'S12', label: '1' },
+      { source: 'S12', target: 'S9', label: 'null', curve: 1, sweep: 1 },
+      { source: 'S12', target: 'S13', label: '0', curve: .8, sweep: 0 },
+      { source: 'S12', target: 'S13', label: '1', curve: .8, sweep: 1 },
+      { source: 'S13', target: 'S13', label: '0, 1' },
+      { source: 'S13', target: 'S14', label: 'null' }
+    ]
   }
 }
 
@@ -67,7 +119,7 @@ const pda = computed(() => PDA_CONFIGS[props.problemId])
 const problemRegex = computed(() => REGEX_MAP[props.problemId])
 
 const renderPDA = () => {
-    if (!svgRef.value || props.problemId !== 1) return;
+    if (!svgRef.value || !PDA_CONFIGS[props.problemId]) return;
     
     const data = pda.value;
     d3.select(svgRef.value).selectAll("*").remove();
@@ -100,7 +152,11 @@ const renderPDA = () => {
         .attr("fill", "none")
         .attr("stroke", "black")
         .attr("stroke-width", 1.8)
-        .attr("marker-end", d => d.source === d.target ? "url(#arrow-loop)" : "url(#arrow)");
+        .attr("marker-end", d => {
+            if (d.source === d.target) return "url(#arrow-loop)";
+            if ((d.target.id || d.target) === 'L1') return "url(#arrow-loop)";
+            return "url(#arrow)";
+        });
 
     const linkLabel = svg.append("g").selectAll("text")
         .data(data.links).join("text").text(d => d.label)
@@ -242,12 +298,8 @@ onMounted(() => {
         <span>Pushdown Automata Diagram</span>
       </div>
       
-      <div class="viz-container" v-show="problemId === 1">
+      <div class="viz-container" v-if="[1, 2].includes(problemId)">
         <svg ref="svgRef"></svg>
-      </div>
-
-      <div class="image-viewport" v-if="problemId === 2">
-        <img :src="pdaregex2" alt="PDA for Regex 2" class="pda-image" />
       </div>
     </div>
 
