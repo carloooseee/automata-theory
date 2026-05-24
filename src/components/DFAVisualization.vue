@@ -179,8 +179,8 @@ const initSim = () => {
 }
 
 const highlightElements = () => {
-    d3.select(svgRef.value).selectAll('circle').attr('stroke', '#fff').attr('stroke-width', 1.5).style('filter', null);
-    d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'black').attr('stroke-width', 2);
+    d3.select(svgRef.value).selectAll('circle').attr('stroke', 'var(--node-stroke)').attr('stroke-width', 1.5).style('filter', null);
+    d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2);
     
     if (!simResult.value) return;
     
@@ -273,8 +273,8 @@ const doReset = () => {
   simResult.value = null
   
   if (svgRef.value) {
-      d3.select(svgRef.value).selectAll('circle').attr('stroke', '#fff').attr('stroke-width', 1.5).style('filter', null);
-      d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'black').attr('stroke-width', 2);
+      d3.select(svgRef.value).selectAll('circle').attr('stroke', 'var(--node-stroke)').attr('stroke-width', 1.5).style('filter', null);
+      d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2);
   }
 }
 
@@ -298,7 +298,7 @@ const renderDFA = () => {
         .attr("orient", "auto")
         .append("path")
         .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "#000");
+        .attr("fill", "var(--edge-stroke)");
 
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink(data.links).id(d => d.id));
@@ -310,19 +310,21 @@ const renderDFA = () => {
         .attr("class", "edge")
         .attr("id", d => `link-${d.source.id ?? d.source}-${d.target.id ?? d.target}-${d.label}`)
         .attr("fill", "none")
-        .attr("stroke", "black")
+        .attr("stroke", "var(--edge-stroke)")
         .attr("stroke-width", 2)
         .attr("marker-end", "url(#arrow)");
 
     const linkLabel = svg.append("g").selectAll("text")
-        .data(data.links).join("text").text(d => d.label)
+        .data(data.links).join("text")
+        .attr("class", "link-label")
+        .text(d => d.label)
         .attr("font-size", "16px")
-        .attr("fill", "#e63946")
+        .attr("fill", "var(--link-label-fill, #e63946)")
         .attr("font-weight", "bold")
         .attr("text-anchor", "middle")
         // Create the white background aura effect using stroke
         .style("paint-order", "stroke")
-        .style("stroke", "#ffffff")
+        .style("stroke", "var(--link-label-stroke)")
         .style("stroke-width", "5px")
         .style("stroke-linejoin", "round");
 
@@ -331,7 +333,7 @@ const renderDFA = () => {
         .data(data.nodes)
         .join("circle")
         .attr("id", d => `node-${d.id}`)
-        .attr("stroke", "#fff")
+        .attr("stroke", "var(--node-stroke)")
         .attr("stroke-width", 1.5)
         .attr("r", 20)
         .attr("fill", d => d.type === 'accept' ? '#4caf50' : (d.type === 'start' ? '#ff9800' : '#2196f3'));

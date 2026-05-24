@@ -198,7 +198,7 @@ const renderTree = () => {
     svg.append("defs").selectAll("marker").data(["end"]).enter().append("marker")
         .attr("id", "arrow-cfg").attr("viewBox", "0 -5 10 10")
         .attr("refX", 0).attr("refY", 0).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto")
-        .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "#666")
+        .append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "var(--edge-stroke)")
         
     const margin = { top: 40, right: 40, bottom: 40, left: 40 }
     const width = 800 - margin.left - margin.right
@@ -215,7 +215,7 @@ const renderTree = () => {
 
     g.selectAll(".link").data(visibleLinks, d => d.target.data.id)
         .join("path")
-        .attr("class", "link").attr("fill", "none").attr("stroke", "#666").attr("stroke-width", 2)
+        .attr("class", "link").attr("fill", "none").attr("stroke", "var(--edge-stroke)").attr("stroke-width", 2)
         .attr("marker-end", "url(#arrow-cfg)")
         .attr("d", d3.linkVertical().x(d => d.x).y(d => d.y))
         
@@ -225,7 +225,7 @@ const renderTree = () => {
         
     nodes.append("circle").attr("r", 18)
         .attr("fill", d => !cfg.value.nonTerminals.includes(d.data.name) ? '#4caf50' : '#f59e0b')
-        .attr("stroke", "#fff").attr("stroke-width", 2)
+        .attr("stroke", "var(--node-stroke)").attr("stroke-width", 2)
         
     nodes.append("text").attr("dy", 4).attr("text-anchor", "middle")
         .attr("font-size", "14px").attr("font-weight", "bold").attr("fill", "white")

@@ -151,10 +151,117 @@ h4 { font-size: 1.3rem; }
   }
 }
 
+/* Theme variables (Light Mode defaults) */
+:root {
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --title-color: #1e1e2e;
+  --text-main: #334155;
+  --text-muted: #6b7280;
+  
+  --regex-bg: #f8fafc;
+  --regex-border: #e2e8f0;
+  --regex-text: #334155;
+  
+  --status-card-bg: #ffffff;
+  --status-card-border: #e2e8f0;
+  
+  --tape-cell-bg: #f8fafc;
+  --tape-cell-border: #e2e8f0;
+  --tape-cell-text: #334155;
+  
+  --viz-container-bg: #fafafa;
+  --viz-container-border: #f1f5f9;
+  
+  --edge-stroke: #000000;
+  --node-stroke: #ffffff;
+  --link-label-stroke: #ffffff;
+  --link-label-fill: #e63946;
+  
+  --rule-card-bg: #ffffff;
+  --rule-card-border: #e2e8f0;
+  --rule-head-bg: #f8fafc;
+  --rule-row-border: #f1f5f9;
+  --rule-row-hover: #fafafa;
+  --rule-arrow: #cbd5e1;
+  --rule-num: #cbd5e1;
+
+  /* Status Color Variables (Light Mode) */
+  --status-ok-bg: #f0fdf4;
+  --status-ok-color: #15803d;
+  --status-ok-border: #bbf7d0;
+  
+  --status-fail-bg: #fef2f2;
+  --status-fail-color: #b91c1c;
+  --status-fail-border: #fecaca;
+  
+  --status-active-bg: #eff6ff;
+  --status-active-color: #1d4ed8;
+  --status-active-border: #bfdbfe;
+  
+  --status-warning-bg: #fffbeb;
+  --status-warning-color: #b45309;
+  --status-warning-border: #fde68a;
+}
+
 /* Dark Mode Styles */
 body.dark-mode {
   background-color: #0f172a;
   color: #f8fafc;
+  transition: background-color 0.3s, color 0.3s;
+  
+  /* Dark mode overrides for variables */
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  --title-color: #f8fafc;
+  --text-main: #f1f5f9;
+  --text-muted: #cbd5e1;
+  
+  --regex-bg: #0f172a;
+  --regex-border: #334155;
+  --regex-text: #cbd5e1;
+  
+  --status-card-bg: #111827;
+  --status-card-border: #334155;
+  
+  --tape-cell-bg: #1f2937;
+  --tape-cell-border: #374151;
+  --tape-cell-text: #f3f4f6;
+  
+  --viz-container-bg: #0f172a;
+  --viz-container-border: #334155;
+  
+  --edge-stroke: #94a3b8;
+  --node-stroke: #1e293b;
+  --link-label-stroke: #0f172a;
+  --link-label-fill: #fca5a5;
+  
+  --rule-card-bg: #111827;
+  --rule-card-border: #334155;
+  --rule-head-bg: #0f172a;
+  --rule-row-border: #1f2937;
+  --rule-row-hover: #1f2937;
+  --rule-arrow: #475569;
+  --rule-num: #475569;
+
+  /* Status Color Variables (Dark Mode) */
+  --status-ok-bg: #064e3b;
+  --status-ok-color: #34d399;
+  --status-ok-border: #065f46;
+  
+  --status-fail-bg: #7f1d1d;
+  --status-fail-color: #fca5a5;
+  --status-fail-border: #991b1b;
+  
+  --status-active-bg: #1e3a8a;
+  --status-active-color: #60a5fa;
+  --status-active-border: #1e40af;
+  
+  --status-warning-bg: #78350f;
+  --status-warning-color: #fbbf24;
+  --status-warning-border: #92400e;
 }
 
 body.dark-mode h1,
@@ -169,23 +276,144 @@ body.dark-mode .main-title p {
   color: #cbd5e1;
 }
 
-/* Ensure the white cards stay white in dark mode */
-body.dark-mode .dfa-wrap,
-body.dark-mode .cfg-wrap,
-body.dark-mode .pda-wrap {
-  background-color: #ffffff;
-  color: #000000;
+/* Visualization wrap styling (Light & Dark Mode) */
+.dfa-wrap,
+.cfg-wrap,
+.pda-wrap {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--card-shadow) !important;
+  border: 1px solid var(--card-border);
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
-body.dark-mode .dfa-wrap h2,
-body.dark-mode .cfg-wrap h2,
-body.dark-mode .pda-wrap h2,
-body.dark-mode .dfa-wrap p,
-body.dark-mode .cfg-wrap p,
-body.dark-mode .pda-wrap p {
-  color: #000000;
+.dfa-wrap h2,
+.cfg-wrap h2,
+.pda-wrap h2,
+.dfa-wrap p,
+.cfg-wrap p,
+.pda-wrap p {
+  color: var(--text-main) !important;
+  transition: color 0.3s;
 }
 
+.dfa-wrap .title,
+.cfg-wrap .title,
+.pda-wrap .title {
+  color: var(--title-color) !important;
+  transition: color 0.3s;
+}
+
+.dfa-wrap .leg,
+.cfg-wrap .leg,
+.pda-wrap .leg {
+  color: var(--text-muted) !important;
+  transition: color 0.3s;
+}
+
+/* Regex Card styling */
+.regex-wrap {
+  background: var(--regex-bg) !important;
+  border-color: var(--regex-border) !important;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+.regex-code {
+  color: var(--regex-text) !important;
+  transition: color 0.3s;
+}
+
+/* Simulation Status Card */
+.simulation-status-card {
+  background: var(--status-card-bg) !important;
+  border-color: var(--status-card-border) !important;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* Tape Cell styling */
+.tape-cell {
+  background: var(--tape-cell-bg) !important;
+  border-color: var(--tape-cell-border) !important;
+  color: var(--tape-cell-text) !important;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+/* Status Tape and Badge overrides using variables */
+.tape-cell.done, .state-badge.ok, .tape-cell.target {
+  background: var(--status-ok-bg) !important;
+  color: var(--status-ok-color) !important;
+  border-color: var(--status-ok-border) !important;
+}
+
+.state-badge.fail, .tape-cell.target-fail {
+  background: var(--status-fail-bg) !important;
+  color: var(--status-fail-color) !important;
+  border-color: var(--status-fail-border) !important;
+}
+
+.state-badge.active, .banner-active {
+  background: var(--status-active-bg) !important;
+  color: var(--status-active-color) !important;
+  border-color: var(--status-active-border) !important;
+}
+
+.tape-cell.active, .char-badge {
+  background: var(--status-warning-bg) !important;
+  color: var(--status-warning-color) !important;
+  border-color: var(--status-warning-border) !important;
+}
+
+/* Viz Container */
+.viz-container {
+  background: var(--viz-container-bg) !important;
+  border-color: var(--viz-container-border) !important;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* CFG Rule Card styling */
+.rule-card {
+  background: var(--rule-card-bg) !important;
+  border-color: var(--rule-card-border) !important;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+.rule-card-head {
+  background: var(--rule-head-bg) !important;
+  border-bottom-color: var(--rule-card-border) !important;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+.rule-row {
+  border-bottom-color: var(--rule-row-border) !important;
+  transition: border-color 0.3s;
+}
+.rule-row.hovered {
+  background: var(--rule-row-hover) !important;
+}
+.rule-row .arrow {
+  color: var(--rule-arrow) !important;
+  transition: color 0.3s;
+}
+.rule-row .pipe {
+  color: var(--rule-arrow) !important;
+  transition: color 0.3s;
+}
+.rule-row .row-num {
+  color: var(--rule-num) !important;
+  transition: color 0.3s;
+}
+
+/* PDA Specific visual card styling */
+.pda-viz-card {
+  background: var(--rule-card-bg) !important;
+  border-color: var(--rule-card-border) !important;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+.viz-head {
+  background: var(--rule-head-bg) !important;
+  border-bottom-color: var(--rule-card-border) !important;
+  color: var(--text-muted) !important;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+/* Controls */
 body.dark-mode .visualization-controls button {
   background: #334155;
   color: #cbd5e1;

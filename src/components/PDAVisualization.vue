@@ -138,7 +138,7 @@ const renderPDA = () => {
         .attr("orient", "auto")
         .append("path")
         .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "#000");
+        .attr("fill", "var(--edge-stroke)");
 
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink(data.links).id(d => d.id));
@@ -150,7 +150,7 @@ const renderPDA = () => {
         .attr("class", "edge")
         .attr("id", d => `link-${d.source.id ?? d.source}-${d.target.id ?? d.target}-${d.label}`)
         .attr("fill", "none")
-        .attr("stroke", "black")
+        .attr("stroke", "var(--edge-stroke)")
         .attr("stroke-width", 1.5)
         .attr("marker-end", d => {
             if (d.source === d.target) return "url(#arrow-loop)";
@@ -159,13 +159,15 @@ const renderPDA = () => {
         });
 
     const linkLabel = svg.append("g").selectAll("text")
-        .data(data.links).join("text").text(d => d.label)
+        .data(data.links).join("text")
+        .attr("class", "link-label")
+        .text(d => d.label)
         .attr("font-size", "16px")
-        .attr("fill", "#e63946")
+        .attr("fill", "var(--link-label-fill, #e63946)")
         .attr("font-weight", "bold")
         .attr("text-anchor", "middle")
         .style("paint-order", "stroke")
-        .style("stroke", "#ffffff")
+        .style("stroke", "var(--link-label-stroke)")
         .style("stroke-width", "4px")
         .style("stroke-linejoin", "round");
 
