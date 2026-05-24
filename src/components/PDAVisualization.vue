@@ -50,8 +50,8 @@ const PDA_CONFIGS = {
       { source: 'S9', target: 'S12', label: 'a' },
       { source: 'S10', target: 'S12', label: 'b' },
       { source: 'S12', target: 'S11', label: '∆' },
-      { source: 'S12', target: 'S13', label: 'a', curve: 1.5, sweep: 0 },
-      { source: 'S12', target: 'S13', label: 'b', curve: 1.5, sweep: 1 },
+      { source: 'S12', target: 'S13', label: 'a', curve: .8, sweep: 0 },
+      { source: 'S12', target: 'S13', label: 'b', curve: .8, sweep: 1 },
       { source: 'S13', target: 'S13', label: 'a, b' },
       { source: 'S13', target: 'S14', label: '∆' }
     ]
@@ -162,7 +162,7 @@ const renderPDA = () => {
         .data(data.links).join("text")
         .attr("class", "link-label")
         .text(d => d.label)
-        .attr("font-size", "16px")
+        .attr("font-size", "20px")
         .attr("fill", "var(--link-label-fill, #e63946)")
         .attr("font-weight", "bold")
         .attr("text-anchor", "middle")
@@ -198,7 +198,7 @@ const renderPDA = () => {
         .data(data.nodes).join("text").attr("class", "main-label").text(d => d.label)
         .attr("dy", 5)
         .attr("text-anchor", "middle")
-        .attr("font-size", "16px")
+        .attr("font-size", "18px")
         .attr("pointer-events", "none")
         .attr("fill", "white").attr("font-weight", "bold");
 
