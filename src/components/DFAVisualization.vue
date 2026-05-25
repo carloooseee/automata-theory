@@ -188,7 +188,7 @@ const highlightElements = () => {
     const isAccepted = resultAccepted.value;
     const isDone = done.value;
     const activeColor = isDone ? (isAccepted ? '#22c55e' : '#ef4444') : '#3b82f6';
-    const trailColor = activeColor; // Trail matches active status color
+    const trailColor = isDone ? activeColor : 'orange'; // Trail matches active status color
     
     const steps = simResult.value.steps;
     const maxIdx = stepIndex.value;
@@ -207,7 +207,7 @@ const highlightElements = () => {
           .attr('stroke-width', nodeWidth)
           .style('filter', applyGlow ? `drop-shadow(0 0 12px ${nodeColor})` : null);
           
-        if (isDone) {
+        if (isDone || !isCurrent) {
             d3.select(svgRef.value).select(`#node-${step.state}`).attr('fill', nodeColor);
         }
           
