@@ -177,7 +177,7 @@ h4 { font-size: 1.3rem; }
   --edge-stroke: #000000;
   --node-stroke: #ffffff;
   --link-label-stroke: #ffffff;
-  --link-label-fill: #e63946;
+  --link-label-fill: #000000;
   
   --rule-card-bg: #ffffff;
   --rule-card-border: #e2e8f0;
@@ -207,44 +207,44 @@ h4 { font-size: 1.3rem; }
 
 /* Dark Mode Styles */
 body.dark-mode {
-  background-color: #0f172a;
+  background-color: #000000;
   color: #f8fafc;
   transition: background-color 0.3s, color 0.3s;
   
   /* Dark mode overrides for variables */
-  --card-bg: #1e293b;
-  --card-border: #334155;
+  --card-bg: #0a0a0a;
+  --card-border: #222222;
   --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   --title-color: #f8fafc;
   --text-main: #f1f5f9;
-  --text-muted: #cbd5e1;
+  --text-muted: #a3a3a3;
   
-  --regex-bg: #0f172a;
-  --regex-border: #334155;
-  --regex-text: #cbd5e1;
+  --regex-bg: #000000;
+  --regex-border: #222222;
+  --regex-text: #d4d4d4;
   
-  --status-card-bg: #111827;
-  --status-card-border: #334155;
+  --status-card-bg: #0a0a0a;
+  --status-card-border: #222222;
   
-  --tape-cell-bg: #1f2937;
-  --tape-cell-border: #374151;
+  --tape-cell-bg: #111111;
+  --tape-cell-border: #333333;
   --tape-cell-text: #f3f4f6;
   
-  --viz-container-bg: #0f172a;
-  --viz-container-border: #334155;
+  --viz-container-bg: #000000;
+  --viz-container-border: #222222;
   
-  --edge-stroke: #94a3b8;
-  --node-stroke: #1e293b;
-  --link-label-stroke: #0f172a;
-  --link-label-fill: #fca5a5;
+  --edge-stroke: #ffffff;
+  --node-stroke: #0a0a0a;
+  --link-label-stroke: #000000;
+  --link-label-fill: #ffffff;
   
-  --rule-card-bg: #111827;
-  --rule-card-border: #334155;
-  --rule-head-bg: #0f172a;
-  --rule-row-border: #1f2937;
-  --rule-row-hover: #1f2937;
-  --rule-arrow: #475569;
-  --rule-num: #475569;
+  --rule-card-bg: #0a0a0a;
+  --rule-card-border: #222222;
+  --rule-head-bg: #000000;
+  --rule-row-border: #1a1a1a;
+  --rule-row-hover: #1a1a1a;
+  --rule-arrow: #525252;
+  --rule-num: #525252;
 
   /* Status Color Variables (Dark Mode) */
   --status-ok-bg: #064e3b;
@@ -432,8 +432,8 @@ body.dark-mode .visualization-controls button.active {
 
 /* --- NavBar Global Dark Mode --- */
 body.dark-mode .navbar {
-  background: #0f172a; 
-  border-bottom-color: #1e293b;
+  background: #000000; 
+  border-bottom-color: #222222;
 }
 
 body.dark-mode .nav-title {
@@ -441,13 +441,13 @@ body.dark-mode .nav-title {
 }
 
 body.dark-mode .nav-buttons .btn {
-  background: #1e293b;
-  color: #94a3b8;
-  border-color: #334155;
+  background: #0a0a0a;
+  color: #a3a3a3;
+  border-color: #222222;
 }
 
 body.dark-mode .nav-buttons .btn:hover {
-  background: #334155;
+  background: #222222;
   color: #f8fafc;
 }
 
@@ -459,13 +459,13 @@ body.dark-mode .nav-buttons .btn.active {
 
 /* --- User Manual Global Dark Mode --- */
 body.dark-mode .manual-plain {
-  background: #1e293b;
-  color: #cbd5e1;
+  background: #0a0a0a;
+  color: #d4d4d4;
 }
 
 body.dark-mode .manual-plain h1,
 body.dark-mode .manual-plain h2 {
-  border-bottom-color: #334155;
+  border-bottom-color: #222222;
   color: #f8fafc;
 }
 
@@ -474,7 +474,7 @@ body.dark-mode .manual-plain h3 {
 }
 
 body.dark-mode .manual-plain hr {
-  border-top-color: #334155;
+  border-top-color: #222222;
 }
 
 body.dark-mode .manual-plain strong {

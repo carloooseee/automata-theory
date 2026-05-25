@@ -180,7 +180,7 @@ const initSim = () => {
 
 const highlightElements = () => {
     d3.select(svgRef.value).selectAll('circle').attr('stroke', 'var(--node-stroke)').attr('stroke-width', 1.5).style('filter', null);
-    d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2);
+    d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2).style('filter', null);
     
     if (!simResult.value) return;
     
@@ -198,32 +198,33 @@ const highlightElements = () => {
         
         const isCurrent = (i === maxIdx);
         const nodeColor = isCurrent ? activeColor : trailColor;
-        const nodeWidth = isCurrent ? 3.5 : 2.5;
+        const nodeWidth = isCurrent ? 4 : 2.5;
         
         d3.select(svgRef.value).select(`#node-${step.state}`)
           .attr('stroke', nodeColor)
           .attr('stroke-width', nodeWidth)
-          .style('filter', isCurrent ? `drop-shadow(0 0 8px ${nodeColor})` : null);
+          .style('filter', isCurrent ? `drop-shadow(0 0 12px ${nodeColor})` : null);
           
         if (i < maxIdx) {
             const nextStep = steps[i+1];
             if (nextStep && nextStep.state && nextStep.char) {
-                const edgeColor = (i === maxIdx - 1 && !isDone) ? activeColor : trailColor;
-                const edgeWidth = (i === maxIdx - 1 && !isDone) ? 3 : 2.5;
+                const isCurrentEdge = (i === maxIdx - 1 && !isDone);
+                const edgeColor = isCurrentEdge ? activeColor : trailColor;
+                const edgeWidth = isCurrentEdge ? 4 : 3;
                 
                 let specificLink = d3.select(svgRef.value).select(`#link-${step.state}-${nextStep.state}-${nextStep.char}`);
-                if (!specificLink.empty()) {
-                    specificLink.attr('stroke', edgeColor).attr('stroke-width', edgeWidth);
-                } else {
-                    d3.select(svgRef.value).select(`path[id^="link-${step.state}-${nextStep.state}"]`)
-                      .attr('stroke', edgeColor).attr('stroke-width', edgeWidth);
-                }
+                let targetLink = specificLink.empty() ? d3.select(svgRef.value).select(`path[id^="link-${step.state}-${nextStep.state}"]`) : specificLink;
+                
+                targetLink
+                    .attr('stroke', edgeColor)
+                    .attr('stroke-width', edgeWidth)
+                    .style('filter', isCurrentEdge ? `drop-shadow(0 0 10px ${edgeColor})` : null);
             } else if (nextStep && nextStep.dead) {
                 if (i === maxIdx - 1) {
                      d3.select(svgRef.value).select(`#node-${step.state}`)
                       .attr('stroke', '#ef4444')
-                      .attr('stroke-width', 3.5)
-                      .style('filter', `drop-shadow(0 0 8px #ef4444)`);
+                      .attr('stroke-width', 4)
+                      .style('filter', `drop-shadow(0 0 12px #ef4444)`);
                 }
             }
         }
@@ -274,7 +275,7 @@ const doReset = () => {
   
   if (svgRef.value) {
       d3.select(svgRef.value).selectAll('circle').attr('stroke', 'var(--node-stroke)').attr('stroke-width', 1.5).style('filter', null);
-      d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2);
+      d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2).style('filter', null);
   }
 }
 
