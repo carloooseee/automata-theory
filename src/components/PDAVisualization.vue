@@ -233,11 +233,14 @@ const highlightElements = () => {
     d3.select(svgRef.value).selectAll('ellipse, polygon').attr('stroke', null).attr('stroke-width', null).style('filter', null);
     d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2).style('filter', null);
     
+    d3.select(svgRef.value).selectAll('ellipse').attr('fill', d => d ? (d.type === 'accept' ? '#4caf50' : (d.type === 'start' ? '#ff9800' : '#f44336')) : null);
+    d3.select(svgRef.value).selectAll('polygon').attr('fill', '#2196f3');
+    
     if (!simResult.value) return;
     
     const isAccepted = resultAccepted.value;
     const isDone = done.value;
-    const activeColor = isDone ? (isAccepted ? '#22c55e' : '#ef4444') : '#f59e0b';
+    const activeColor = isDone ? (isAccepted ? '#22c55e' : '#ef4444') : '#3b82f6';
     const trailColor = activeColor;
     
     const stepsList = simResult.value.steps;
@@ -248,13 +251,18 @@ const highlightElements = () => {
         if (!step.state) continue;
         
         const isCurrent = (i === maxIdx);
+        const applyGlow = isCurrent || isDone;
         const nodeColor = isCurrent ? activeColor : trailColor;
-        const nodeWidth = isCurrent ? 4 : 2.5;
+        const nodeWidth = applyGlow ? 4 : 2.5;
         
         d3.select(svgRef.value).select(`#node-${step.state}`)
           .attr('stroke', nodeColor)
           .attr('stroke-width', nodeWidth)
-          .style('filter', isCurrent ? `drop-shadow(0 0 12px ${nodeColor})` : null);
+          .style('filter', applyGlow ? `drop-shadow(0 0 12px ${nodeColor})` : null);
+          
+        if (isDone) {
+            d3.select(svgRef.value).select(`#node-${step.state}`).attr('fill', nodeColor);
+        }
           
         if (i < maxIdx) {
             const nextStep = stepsList[i+1];
@@ -278,6 +286,7 @@ const highlightElements = () => {
                      d3.select(svgRef.value).select(`#node-${step.state}`)
                       .attr('stroke', '#ef4444')
                       .attr('stroke-width', 4)
+                      .attr('fill', '#ef4444')
                       .style('filter', `drop-shadow(0 0 12px #ef4444)`);
                 }
             }
@@ -327,6 +336,9 @@ const doReset = () => {
   if (svgRef.value) {
       d3.select(svgRef.value).selectAll('ellipse, polygon').attr('stroke', null).attr('stroke-width', null).style('filter', null);
       d3.select(svgRef.value).selectAll('path.edge').attr('stroke', 'var(--edge-stroke)').attr('stroke-width', 2).style('filter', null);
+      
+      d3.select(svgRef.value).selectAll('ellipse').attr('fill', d => d ? (d.type === 'accept' ? '#4caf50' : (d.type === 'start' ? '#ff9800' : '#f44336')) : null);
+      d3.select(svgRef.value).selectAll('polygon').attr('fill', '#2196f3');
   }
 }
 
