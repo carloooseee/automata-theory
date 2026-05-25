@@ -277,7 +277,10 @@ const highlightElements = () => {
                     if (d) targetId = d.target.id || d.target;
                 }
                 
-                d3.select(svgRef.value).select(`path[id^="link-${step.state}-${targetId}"]`)
+                let specificLink = d3.select(svgRef.value).select(`[id="link-${step.state}-${targetId}-${nextStep.char}"]`);
+                let targetLink = specificLink.empty() ? d3.select(svgRef.value).select(`path[id^="link-${step.state}-${targetId}"]`) : specificLink;
+                
+                targetLink
                   .attr('stroke', edgeColor)
                   .attr('stroke-width', edgeWidth)
                   .style('filter', isCurrentEdge ? `drop-shadow(0 0 10px ${edgeColor})` : null);
