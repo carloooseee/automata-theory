@@ -71,8 +71,8 @@ onUnmounted(() => {
   
   <div v-if="currentView === 'regex'">
     <div class="main-logo-container">
-      <img v-if="isDarkMode" src="@/assets/logo-dark-mode.png" class="main-logo" alt="NieR: Automata" />
-      <img v-else src="@/assets/logo-white-mode.png" class="main-logo" alt="NieR: Automata" />
+      <img v-if="isDarkMode" src="@/assets/logo-dark-mode.png" class="main-logo glow-white" alt="NieR: Automata" />
+      <img v-else src="@/assets/logo-white-mode.png" class="main-logo glow-black" alt="NieR: Automata" />
     </div>
     <p class="main-title">Interactive Regular Expressions Simulator</p>
 
@@ -228,5 +228,35 @@ onUnmounted(() => {
   max-width: 600px;
   width: 100%;
   height: auto;
+}
+
+.glow-black {
+  animation: neon-flicker-black 4s infinite;
+}
+
+.glow-white {
+  animation: neon-flicker-white 4s infinite;
+}
+
+@keyframes neon-flicker-black {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    filter: none;
+    opacity: 0.5;
+  }
+}
+
+@keyframes neon-flicker-white {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    filter: none;
+    opacity: 0.5;
+  }
 }
 </style>
