@@ -18,10 +18,10 @@
 <style scoped>
 .bottom-navbar {
   width: 100%;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  background: #0a0a0a;
+  color: #e5e5e5;
   padding: 16px 24px;
-  border-top: 1px solid #313244;
+  border-top: 1px solid #222222;
   margin-top: 40px;
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }

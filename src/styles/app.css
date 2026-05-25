@@ -415,13 +415,13 @@ body.dark-mode .main-title p {
 
 /* Controls */
 body.dark-mode .visualization-controls button {
-  background: #334155;
-  color: #cbd5e1;
-  border-color: #475569;
+  background: #1a1a1a;
+  color: #e5e5e5;
+  border-color: #333333;
 }
 
 body.dark-mode .visualization-controls button:hover {
-  background: #475569;
+  background: #2a2a2a;
 }
 
 body.dark-mode .visualization-controls button.active {
