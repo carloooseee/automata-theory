@@ -18,12 +18,14 @@
 <style scoped>
 .bottom-navbar {
   width: 100%;
-  background: #0a0a0a;
+  background: rgba(10, 10, 10, 0.85);
   color: #e5e5e5;
   padding: 16px 24px;
-  border-top: 1px solid #222222;
+  border-top: 1px solid rgba(34, 34, 34, 0.5);
   margin-top: 40px;
   font-family: 'Inter', 'Segoe UI', sans-serif;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .footer-content {
