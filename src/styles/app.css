@@ -5,6 +5,14 @@ html, body {
   width: 100%;
 }
 
+body {
+  background-image: url('../assets/nier_automata_anime_2b_vector_png_by_vigoordesigns_dg6wecn-pre.png');
+  background-position: right bottom;
+  background-size: 30vw auto;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 h1 { font-size: 2.2rem; }
 
 /* 🔥 FIX: remove default margins causing gap */
